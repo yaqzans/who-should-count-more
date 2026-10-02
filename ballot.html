@@ -259,7 +259,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
   // The country and rigging buttons only set these; params() reads them all.
   const VARS = [
     ["Voters", "n", "Voters in the constituency", 101, 5001, 100, (v) => v.toLocaleString("en-US"),
-      "A real seat has about 400,000. A thousand keeps the picture readable and behaves the same way.", "assumption"],
+      "A real seat has about 400,000. A thousand keeps the picture readable. With more voters, personal misjudgement cancels out more, so the exact rates would shift.", "assumption"],
     ["Voters", "f", "Share with higher education", 0.02, 0.6, 0.01, (v) => Math.round(v * 100) + "%",
       "Who counts as educated.", "WVS (country buttons)"],
     ["Counting", "m", "An educated vote counts", 1, 10, 1, (v) => v + "×",
@@ -293,7 +293,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     ["Parties", "mix", "Educated voters and the parties", 0, 0, 0, (v) => v,
       "Whether the educated are loyal as often as everyone else.", "WVS: about as attached as everyone else"],
     ["Money and muscle", "bud", "The rigger's budget", 0, 0.5, 0.01, (v) => (v > 0 ? "Tk " + Math.round(v * 100000).toLocaleString("en-US") : "none"),
-      "Spent on the cheapest votes first. A typical ordinary vote goes for Tk 1,000 (the median; the floor reported for 2024), some for much less.", "assumption; vote price reported"],
+      "Spent on the cheapest votes first. A typical ordinary vote goes for Tk 1,000 here (the median), and some sell for less. Reported payments in Bangladesh start at Tk 1,000 a vote.", "budget: assumption; price: WFD 2025 (\"payments per vote starting at BDT 1,000\")"],
     ["Money and muscle", "r", "Price of an educated vote", 0.5, 6, 0.25, (v) => v.toFixed(2) + "×",
       "Compared with everyone else's.", "assumption; WVS: the educated report higher incomes"],
     ["Money and muscle", "k", "Cost of threatening one voter", 250, 8000, 250, (v) => (v >= 8000 ? "not used" : "Tk " + v.toLocaleString("en-US")),
