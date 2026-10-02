@@ -267,8 +267,12 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
       "The same for everyone else. Bigger noise means closer to a coin flip.", "assumption"],
     ["Judgement", "mu-e", "Standing lean of the educated", -1, 1, 0.05, (v) => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(2),
       "A push the educated always carry, whatever the news. + toward the good candidate's side, − toward the bad one's.", "assumption; WVS shows no clear lean in Bangladesh"],
-    ["News", "me", "National channels the educated follow", 1, 200, 1, (v) => String(v),
-      "Each educated voter follows up to 3 of them. Few channels means they share mistakes.", "assumption"],
+    ["News", "me", "National channels", 1, 200, 1, (v) => String(v),
+      "National TV, papers and sites. The educated follow several; TV viewers among everyone else follow one. Few channels means many people share the same mistakes.", "assumption"],
+    ["News", "kE", "Outlets each educated voter follows", 1, 5, 1, (v) => String(v),
+      "TV, papers, internet. Following more of them averages out any one outlet's slant.", "assumption; WVS: the educated use more kinds of news"],
+    ["News", "tvU", "Everyone else who also watch national TV", 0, 1, 0.01, (v) => Math.round(v * 100) + "%",
+      "They still hear their local source too, and weigh the two equally.", "WVS: weekly TV viewing among the less educated"],
     ["News", "mu", "Local sources everyone else hears", 1, 60, 1, (v) => String(v),
       "A village leader, a local channel, a broker. One each.", "assumption"],
     ["News", "bn", "How much a national channel slants", 0, 2, 0.01, (v) => "±" + v.toFixed(2),
@@ -312,18 +316,21 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
   //   India 2023:      391/1689 high, iE 0.111, iU 0.124 -> bn 0.49, bl 0.75
   //   Pakistan 2018:   207/1992 high, iE 0.024, iU 0.028 -> bn 0.22, bl 0.34
   // bank: 1 minus the education-weighted unattached share (0.858, 0.826, 0.780).
-  const COMMON = { n: 1001, m: 5, q: 0.15, se: 0.8, su: 2, "mu-e": 0, mu: 30, sb: 0.5, lam: 1.5, mix: "same", r: 3 };
+  // tvU: weekly national TV viewing among the low-education group (0.863, 0.625, 0.645). Because
+  // those viewers average one national channel with their local source, bl is refitted so the
+  // shared share still matches iU: t*(bl^2+bn^2)/4 + (1-t)*bl^2 = iU/(1-iU)*2^2 -> bl 0.68, 1.00, 0.46.
+  const COMMON = { kE: 3, n: 1001, m: 5, q: 0.15, se: 0.8, su: 2, "mu-e": 0, mu: 30, sb: 0.5, lam: 1.5, mix: "same", r: 3 };
   const ROUGH = " Rough: the shared-mistake numbers come from trivia questions, not candidates.";
   const WORLDS = {
-    bd:   { f: 0.09, bn: 0.54, bl: 0.48, me: 3, bank: 0.86,
-            note: "Bangladesh 2018. 9% have higher education. 86% name a party they would vote for. The educated share their mistakes more than everyone else (13% against 5%)." + ROUGH },
-    in:   { f: 0.23, bn: 0.49, bl: 0.75, me: 3, bank: 0.83,
-            note: "India 2023. 23% have higher education. 83% name a party. Both groups share mistakes about equally (11% against 12%)." + ROUGH },
-    pk:   { f: 0.10, bn: 0.22, bl: 0.34, me: 3, bank: 0.78,
-            note: "Pakistan 2018. 10% have higher education. 78% name a party. Hardly any shared mistakes in either group (2 to 3%)." + ROUGH },
-    few:  { f: 0.25, bn: 1, bl: 1, me: 3, bank: 0,
-            note: "Made up. A quarter are educated, they all watch the same 3 channels, and nobody is loyal to a party." },
-    wide: { f: 0.25, bn: 1, bl: 1, me: 100, bank: 0,
+    bd:   { f: 0.09, bn: 0.54, bl: 0.68, me: 3, bank: 0.86, tvU: 0.86,
+            note: "Bangladesh 2018. 9% have higher education. 86% name a party they would vote for, and 86% of the less educated watch national TV weekly. The educated share their mistakes more than everyone else (13% against 5%)." + ROUGH },
+    in:   { f: 0.23, bn: 0.49, bl: 1.00, me: 3, bank: 0.83, tvU: 0.63,
+            note: "India 2023. 23% have higher education. 83% name a party, and 63% of the less educated watch national TV weekly. Both groups share mistakes about equally (11% against 12%)." + ROUGH },
+    pk:   { f: 0.10, bn: 0.22, bl: 0.46, me: 3, bank: 0.78, tvU: 0.65,
+            note: "Pakistan 2018. 10% have higher education. 78% name a party, and 65% of the less educated watch national TV weekly. Hardly any shared mistakes in either group (2 to 3%)." + ROUGH },
+    few:  { f: 0.25, bn: 1, bl: 1, me: 3, bank: 0, tvU: 0,
+            note: "Made up. A quarter are educated, they all watch the same 3 channels, nobody else watches national TV, and nobody is loyal to a party." },
+    wide: { f: 0.25, bn: 1, bl: 1, me: 100, bank: 0, tvU: 0,
             note: "Made up. The educated spread over 100 channels, so they rarely share a mistake. Nobody is loyal to a party." },
   };
   let world = "bd";
@@ -376,11 +383,14 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     for (let i = 0; i < n; i++) {
       edu[i] = R() < p.f ? 1 : 0;
       if (edu[i]) {
-        const d = Math.min(3, p.me), pool = Array.from({ length: p.me }, (_, j) => j);
+        const d = Math.min(p.kE || 3, p.me), pool = Array.from({ length: p.me }, (_, j) => j);
         for (let j = 0; j < d; j++) { const t = j + Math.floor(R() * (pool.length - j)); [pool[j], pool[t]] = [pool[t], pool[j]]; }
         src.push(pool.slice(0, d));
       } else {
-        src.push([p.me + Math.floor(R() * p.mu)]);
+        const s = [p.me + Math.floor(R() * p.mu)];
+        // page only: some of everyone else also watch one national channel (absent in the research model)
+        if (p.tvU > 0 && R() < p.tvU) s.push(Math.floor(R() * p.me));
+        src.push(s);
       }
       let pl = p.pl, pk = p.pk;
       if (edu[i] && p.mix === "swing") { pl /= 2; pk /= 2; }
@@ -498,7 +508,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, W, H);
     ctx.font = "500 11px " + css("--body"); ctx.fillStyle = C.muted;
     ctx.fillText(`EDUCATED (${Math.round(p.f * 100)}% of voters): ${W < 560 ? "" : "they watch "}${p.me} national channel${p.me > 1 ? "s" : ""}`, 8, 14);
-    ctx.fillText(W < 560 ? "EVERYONE ELSE: one local source each" : "EVERYONE ELSE: each hears one local source (a village leader, a local channel)", 8, band + 8);
+    ctx.fillText((W < 560 ? "EVERYONE ELSE: one local source each" : "EVERYONE ELSE: each hears one local source (a village leader, a local channel)") + (p.tvU > 0 ? `, ${Math.round(p.tvU * 100)}% also watch national TV` : ""), 8, band + 8);
     ctx.strokeStyle = C.rule; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
     ctx.beginPath(); ctx.moveTo(0, band - 4); ctx.lineTo(W, band - 4); ctx.stroke(); ctx.setLineDash([]);
     ctx.lineWidth = 0.6; ctx.beginPath();
@@ -662,8 +672,11 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     const hw = h.sys.map((r) => r.betterWins), rw = e.sys.map((r) => r.betterWins);
 
     // listeners and how they voted, per source
-    const M = p.me + p.mu, heard = new Array(M).fill(0), badOf = new Array(M).fill(0);
-    for (let i = 0; i < pop.n; i++) for (const j of pop.src[i]) { heard[j]++; if (h.vote[i] !== 1) badOf[j]++; }
+    const M = p.me + p.mu, heard = new Array(M).fill(0), heardE = new Array(M).fill(0), badOf = new Array(M).fill(0);
+    for (let i = 0; i < pop.n; i++) for (const j of pop.src[i]) { heard[j]++; if (pop.edu[i]) heardE[j]++; if (h.vote[i] !== 1) badOf[j]++; }
+    let tvU = 0, tvUg = 0, tvPush = 0;          // everyone else who also watch a national channel
+    for (let i = 0; i < pop.n; i++) if (!pop.edu[i] && pop.src[i].length > 1) { tvU++; tvPush += h.b[pop.src[i][1]]; if (h.vote[i] === 1) tvUg++; }
+    if (tvU) tvPush /= tvU;
 
     // in short: what decided each count
     const shortFor = (j) => {
@@ -723,8 +736,8 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     const noNewsE = Phi(q / p.se), withE = Phi((q + E.pushH) / p.se);
     let sE = `<b>The educated</b> (${E.n}): `;
     sE += p.me <= 12
-      ? `of their ${p.me} national channels, ${Array.from({ length: p.me }, (_, j) => `channel ${j + 1} leaned ${lean(h.b[j])}`).join(", ")}. Channel ${top + 1} pushed hardest, and ${heard[top] === E.n ? `all ${E.n}` : heard[top]} of them follow it. `
-      : `they spread over ${p.me} channels, so no single one dominates; the strongest leaned ${lean(h.b[top])} and reached ${heard[top]} of them. `;
+      ? `of their ${p.me} national channels, ${Array.from({ length: p.me }, (_, j) => `channel ${j + 1} leaned ${lean(h.b[j])}`).join(", ")}. Channel ${top + 1} pushed hardest, and ${heardE[top] === E.n ? `all ${E.n}` : heardE[top]} of them follow it. `
+      : `they spread over ${p.me} channels, so no single one dominates; the strongest leaned ${lean(h.b[top])} and reached ${heardE[top]} of them. `;
     sE += `Put together, their news leaned ${lean(E.pushH)}`
       + (E.pushH < -q ? ", which is more than the good candidate's real advantage. " : E.pushH < 0 ? ", which ate into the good candidate's small real advantage. " : ", on top of the good candidate's small real advantage. ")
       + `With no slant at all about ${pct(noNewsE)} would pick good; with this news, about ${pct(withE)}. ${pct(E.gH / E.n)} actually did`
@@ -734,7 +747,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
         : withE > noNewsE + 0.05 ? "The news worked in the good candidate's favour this time." : "The news hardly moved them.");
     {
       let topLocal = p.me; for (let j = p.me; j < M; j++) if (heard[j] > heard[topLocal]) topLocal = j;
-      let wide = 0; for (let j = 0; j < p.me; j++) wide = Math.max(wide, heard[j]);
+      let wide = 0; for (let j = 0; j < p.me; j++) wide = Math.max(wide, heardE[j]);
       sE += wide / E.n > 2 * heard[topLocal] / U.n
         ? ` <i>Why they move together:</i> the most-followed national channel reaches ${pct(wide / E.n)} of the educated, while the biggest local source reaches only ${pct(heard[topLocal] / U.n)} of everyone else. One channel going wrong moves a big block of educated voters at once.`
         : ` <i>Why they mostly do not move together:</i> no national channel reaches more than ${pct(wide / E.n)} of the educated, about as narrow as a local source (${pct(heard[topLocal] / U.n)} of everyone else), so their mistakes rarely line up.`;
@@ -748,7 +761,9 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     const noNewsU = Phi(q / p.su), withU = Phi((q + U.pushH) / p.su);
     out.push(`<b>Everyone else</b> (${U.n}): ${locBad} of ${p.mu} local sources leaned toward the bad candidate. The worst, local source ${worst - p.me + 1}, leaned ${lean(h.b[worst])}: `
       + `${badOf[worst]} of its ${plural(heard[worst], "listener")} voted bad. The most helpful, local source ${best - p.me + 1}, leaned ${lean(h.b[best])}, and ${badOf[best] ? `only ${badOf[best]}` : "none"} of its ${heard[best]} voted bad. `
-      + `Because each village hears a different source, the pushes mostly cancel: overall they leaned ${lean(U.pushH)}. `
+      + `Because each village hears a different source, the local pushes mostly cancel. `
+      + (tvU ? `But ${pct(tvU / U.n)} of them also watch a national channel, and that part does not cancel: the channels they watched leaned ${lean(tvPush)} on average, and those viewers went ${pct(tvUg / tvU)} good. ` : "")
+      + `Overall their news leaned ${lean(U.pushH)}. `
       + `What is left is their own judgement, which is shaky when the candidates are this close: about ${pct(withU)} expected to pick good, ${pct(U.gH / U.n)} did.`);
 
     // the parties: loyal voters on each side and the swing voters in between
@@ -765,7 +780,10 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     if (p["mu-e"] !== 0) out.push(`<b>Standing lean.</b> Every educated voter also leans ${lean(p["mu-e"])}, whatever the news says. It is already in the educated numbers above.`);
 
     // the bought news
-    if (p.cap > 0) out.push(`<b>The bought channels</b> pushed every educated voter ${lean(-p.cap)} on top of that, taking them from ${pct(E.gH / E.n)} to ${pct(E.gR / E.n)} good: ${plural(E.gH - E.gR, "educated voter")} switched to the bad candidate. Nobody else watches those channels, so everyone else stayed at ${pct(U.gR / U.n)}.`);
+    if (p.cap > 0) out.push(`<b>The bought channels</b> pushed every educated voter ${lean(-p.cap)} on top of that, taking them from ${pct(E.gH / E.n)} to ${pct(E.gR / E.n)} good: ${plural(E.gH - E.gR, "educated voter")} switched. `
+      + (tvU ? `They also reach the ${tvU} of everyone else who watch national TV (half of their news), moving everyone else from ${pct(U.gH / U.n)} to ${pct(U.gR / U.n)} good: ${plural(U.gH - U.gR, "voter")} switched. `
+               + `Per head the bought news moved the educated more, because national channels are all of their news but only half of a TV viewer's.`
+             : `Nobody else watches those channels, so everyone else stayed at ${pct(U.gR / U.n)}.`));
 
     // the briber, count by count
     if (p.bud > 0) e.sys.forEach((r, j) => {
@@ -816,7 +834,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     let lesson = "";
     const thr = e.sys[1].bought && e.sys[1].intimidated > 0, paid0 = e.sys[0].bought && e.sys[0].intimidated < e.sys[0].bought.length;
     if (stolen.includes(1) && thr) lesson = "Making some votes worth more makes those voters the first target. A threat costs the same for anyone, so the weighted voters are the cheapest way to steal it.";
-    else if (stolen.includes(1) && p.cap > 0) lesson = "Whoever owns the channels the educated share owns a bigger slice of the result once their votes are weighted.";
+    else if (stolen.includes(1) && p.cap > 0) lesson = "Whoever owns the channels owns more of the result once educated votes are weighted: national channels are all of an educated voter's news, and each of those votes counts more.";
     else if (stolen.includes(0) && !stolen.includes(1) && paid0) lesson = "Cash buys the cheapest votes, and weighting makes cheap votes count for less. This is the case for weighting.";
     else if (!hw[1] && hw[0]) lesson = "The educated were better judges one by one, but they got the same wrong news together, and weighting made that shared mistake decide the election.";
     else if (hw[1] && !hw[0]) lesson = "Here the educated were right when everyone else was swayed, and weighting gave them the say to fix it.";
@@ -882,12 +900,12 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
       if (Math.abs(g) >= 15) {
         if (p.bud > 0 && !p.noBuy && g < 0) why.push(`cash goes furthest on cheap votes, and under educated ×${p.m} those count least`);
         if (p.bud > 0 && !p.kOff) why.push(`a threat costs the same for anyone, so under educated ×${p.m} the rigger goes for educated voters, who count ${p.m}×`);
-        if (p.cap > 0) why.push(`the bought channels are the ones the educated watch, and their votes count ${p.m}×`);
+        if (p.cap > 0) why.push(p.tvU > 0 ? `the bought channels are all of an educated voter's news but only part of anyone else's, and educated votes count ${p.m}×` : `the bought channels are the ones the educated watch, and their votes count ${p.m}×`);
       }
       if (why.length) s += "Why: " + why.join("; ") + ".";
     }
     if (res.fair[1] < res.fair[0] - 15) s += ` Even with no rigging, weighting loses ${res.fair[0] - res.fair[1]} elections: the educated make fewer mistakes one by one, but they share a few channels, so they make them together.`;
-    else if (res.fair[1] > res.fair[0] + 15) s += ` With no rigging, weighting wins ${res.fair[1] - res.fair[0]} more: here the educated read widely, so their mistakes do not pile up.`;
+    else if (res.fair[1] > res.fair[0] + 15) s += ` With no rigging, weighting wins ${res.fair[1] - res.fair[0]} more: here everyone else's news is about as shared as the educated's, so the educated's sharper judgement wins out.`;
     $("many-note").innerHTML = s;
   }
 
@@ -951,7 +969,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     const parts = [];
     if (rigs.pay) parts.push(`Cash: ${p.bud > 0 ? "Tk " + Math.round(p.bud * 100000).toLocaleString("en-US") : "no budget"} to spend, a typical vote goes for Tk 1,000 and educated ones ${p.r}× that.`);
     if (rigs.threat) parts.push(`Threats: Tk ${p.k.toLocaleString("en-US")} a voter, same for everyone${rigs.pay ? ", used wherever cheaper than cash" : ""}.`);
-    if (rigs.tv) parts.push(`TV: every national channel is pushed ${lean(-p.cap)}. Only the educated watch them.`);
+    if (rigs.tv) parts.push(`TV: every national channel is pushed ${lean(-p.cap)}. All the educated follow them` + (p.tvU > 0 ? `, and so do ${Math.round(p.tvU * 100)}% of everyone else.` : ". Nobody else does in this world."));
     $("rig-note").textContent = parts.length ? parts.join(" ") : "No rigging. Wrong results can still happen from slanted news and voters' own mistakes.";
     const pre = preset(), changed = VARS.filter(([, id]) => String(pre[id]) !== String(id === "mix" ? p.mix : p[id]) && !(+pre[id] === p[id])).map((v) => v[2].toLowerCase());
     $("changed").textContent = changed.length ? `Changed from the preset: ${changed.join(", ")}.` : "";

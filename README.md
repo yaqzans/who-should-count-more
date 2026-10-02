@@ -26,7 +26,7 @@ The question is which count is harder to steal.
    - who the rigger paid or threatened, and at what price
    - what flipping a count it could not afford would have cost
 
-All 19 variables are listed on the page under "Every variable in the model".
+All 21 variables are listed on the page under "Every variable in the model".
 Each one has a one-line meaning and a source: a survey, a reported figure, or
 an assumption.
 
@@ -37,29 +37,36 @@ pushing 0.30), here is how many the good candidate won, shown as
 
 | country | rigging | honest | rigged | stolen |
 |---|---|---|---|---|
-| Bangladesh | pay for votes | 965 / 836 | 585 / 470 | 380 / 366 |
-| Bangladesh | threaten voters | 965 / 836 | 776 / 99 | 189 / 737 |
-| Bangladesh | buy the TV news | 965 / 836 | 921 / 532 | 44 / 304 |
-| India | pay for votes | 896 / 865 | 543 / 742 | 353 / 123 |
-| India | threaten voters | 896 / 865 | 703 / 524 | 193 / 341 |
-| India | buy the TV news | 896 / 865 | 708 / 539 | 188 / 326 |
-| Pakistan | pay for votes | 942 / 920 | 365 / 533 | 577 / 387 |
-| Pakistan | threaten voters | 942 / 920 | 614 / 35 | 328 / 885 |
-| Pakistan | buy the TV news | 942 / 920 | 853 / 481 | 89 / 439 |
+| Bangladesh | pay for votes | 816 / 758 | 473 / 486 | 343 / 272 |
+| Bangladesh | threaten voters | 816 / 758 | 581 / 188 | 235 / 570 |
+| Bangladesh | buy the TV news | 816 / 758 | 501 / 404 | 315 / 354 |
+| India | pay for votes | 890 / 894 | 622 / 756 | 268 / 138 |
+| India | threaten voters | 890 / 894 | 698 / 531 | 192 / 363 |
+| India | buy the TV news | 890 / 894 | 607 / 560 | 283 / 334 |
+| Pakistan | pay for votes | 921 / 963 | 412 / 687 | 509 / 276 |
+| Pakistan | threaten voters | 921 / 963 | 626 / 76 | 295 / 887 |
+| Pakistan | buy the TV news | 921 / 963 | 585 / 529 | 336 / 434 |
 
-**Paying for votes:** weighting educated votes protects the election in India
-and Pakistan. The cheap votes a briber buys count least, and educated votes cost
-more. In Bangladesh it is about a wash.
+**Paying for votes:** weighting educated votes protects the election in all
+three countries. The cheap votes a briber buys count least, and educated votes
+cost more.
 
 **Threats:** weighting is a disaster everywhere. A threat costs the same for
 anyone, so the rigger goes for the educated, whose votes count 5x.
 
-**Buying the news:** weighting makes the election easier to steal. The bought
-national channels are the ones the educated watch.
+**Buying the news:** it steals many elections either way. Weighting still makes
+it somewhat easier, because national channels are all of an educated voter's
+news but only half of a TV viewer's among everyone else.
 
-**With no rigging at all:** weighting already loses some elections. The educated
-make fewer mistakes one by one, but they share a few channels, so they make
-those mistakes together.
+**With no rigging at all:** the two counts are close.
+- Bangladesh: weighting loses a few elections, because the educated there
+  share their mistakes more.
+- India and Pakistan: weighting wins a few, because everyone else's news is
+  about as shared as the educated's, so sharper judgement wins out.
+
+Everyone else hears a local source and, in the country presets, national TV
+as well. The share watching TV comes from the survey's weekly TV viewing among
+the less educated: 86% in Bangladesh, 63% in India, 65% in Pakistan.
 
 Party loyalty matters as much as any of these. If the bad candidate's party
 holds most of the loyal voters, the good candidate rarely wins under either
@@ -73,12 +80,14 @@ These come from World Values Survey wave 7 and use four numbers per country:
 - the share of adults with higher education
 - the share who name a party they would vote for (the loyal voters)
 - the ruling party's share of those (on the slider, not the default)
+- weekly national TV viewing among the less educated
 - how much people in the same region make the same mistake on three factual
   questions (the regional intraclass correlation of wrong answers, for the
   educated and for everyone else)
 
 The page sets the news-source bias so that the model's share of shared error
-matches those correlations.
+matches those correlations. For everyone else, part of their news is now national
+TV, so the local slant is refitted to keep their shared share on target.
 
 | country | higher education | shared error, educated | shared error, others | name a party | ruling party's share |
 |---|---|---|---|---|---|

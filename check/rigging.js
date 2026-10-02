@@ -7,11 +7,11 @@
 // threats at Tk 500, bought channels pushing 0.30.
 (() => {
   const B = window.__ballot, SEED = 20260212, T = 1000;
-  const base = { n: 1001, m: 5, q: 0.15, se: 0.8, su: 2, "mu-e": 0, mu: 30, lam: 1.5, mix: "same", r: 3, pi: 1 };
+  const base = { kE: 3, n: 1001, m: 5, q: 0.15, se: 0.8, su: 2, "mu-e": 0, mu: 30, lam: 1.5, mix: "same", r: 3, pi: 1 };
   const worlds = {
-    Bangladesh: { me: 3, f: 0.09, bn: 0.54, bl: 0.48, bank: 0.86 },
-    India:      { me: 3, f: 0.23, bn: 0.49, bl: 0.75, bank: 0.83 },
-    Pakistan:   { me: 3, f: 0.10, bn: 0.22, bl: 0.34, bank: 0.78 },
+    Bangladesh: { me: 3, f: 0.09, bn: 0.54, bl: 0.68, bank: 0.86, tvU: 0.86 },
+    India:      { me: 3, f: 0.23, bn: 0.49, bl: 1.00, bank: 0.83, tvU: 0.63 },
+    Pakistan:   { me: 3, f: 0.10, bn: 0.22, bl: 0.46, bank: 0.78, tvU: 0.65 },
   };
   const rigs = {
     "pay for votes":    { bud: 0.1, k: 8000, cap: 0, noBuy: false },
