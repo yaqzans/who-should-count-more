@@ -31,7 +31,7 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.2rem, 6vw
 @media (max-width: 900px) {
   .main { grid-template-columns: minmax(0, 1fr); }
   .side { display: contents; }     /* phone: pick, press, watch, read */
-  #card-world { order: 1; } #card-rig { order: 2; } #card-go { order: 3; } #card-net { order: 4; } #card-res { order: 5; }
+  #card-world { order: 1; } #card-rig { order: 2; } #card-go { order: 3; } #card-net { order: 4; }
 }
 .card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 0; padding: 16px; min-width: 0; }
 h2 { font-family: var(--body); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 12px; }
@@ -53,7 +53,19 @@ button:disabled { opacity: 0.5; cursor: wait; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 @media (max-width: 420px) { .row2 { grid-template-columns: 1fr; } }
 .status { font-size: 0.9rem; color: var(--muted); min-height: 1.4em; margin: 0; }
-.result { display: grid; gap: 14px; }
+.result { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }
+.headline { margin: 0 0 14px; }
+.headline:empty { display: none; }
+.headline b { display: block; font-family: var(--display); font-weight: 400; font-size: clamp(1.6rem, 3.6vw, 2.6rem); line-height: 1; text-transform: uppercase; }
+.headline b.stolen { color: var(--bad); }
+.headline span { display: block; margin-top: 6px; color: var(--muted); font-size: 0.9rem; }
+.tally { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; border-top: 1px solid var(--rule); padding-top: 10px; }
+.tally div { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.tally b { display: block; font-size: 1.15rem; color: var(--ink); letter-spacing: 0; text-transform: none; }
+.sys .sub { margin: -2px 0 6px; font-size: 0.78rem; color: var(--muted); }
+.sys .why { margin-top: 10px; }
+#why h3, .sys h3 { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; margin: 16px 0 8px; }
+#why { margin-top: 6px; }
 .sys { display: grid; gap: 4px; }
 .sys .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .sys .name { font-weight: 600; }
@@ -190,11 +202,16 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
             <button id="b-many" class="ghost">Run 1,000 elections<small>Count how many get stolen</small></button>
           </div>
           <p class="status" id="status" role="status"></p>
+          <div class="tally" id="tally" hidden></div>
         </div>
       </section>
 
-      <section class="card" id="card-res" aria-labelledby="h-res">
+    </div>
+  </div>
+
+  <section class="card" id="card-res" aria-labelledby="h-res">
         <h2 id="h-res"><span class="step">4</span>Who won, and why</h2>
+        <div class="headline" id="headline"></div>
         <div class="result" id="result"></div>
         <div class="why" id="why"></div>
         <details class="howto"><summary>How to read this</summary>
@@ -208,8 +225,6 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
           exactly what the rigging changed.</p>
         </details>
       </section>
-    </div>
-  </div>
 
   <section class="card run" aria-labelledby="h-many">
     <h2 id="h-many"><span class="step">5</span>Over 1,000 elections, which count was harder to rig?</h2>
@@ -478,7 +493,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
       hx /= pop.src[i].length; hy /= pop.src[i].length;
       pt.d = Math.hypot(pt.x - hx, pt.y - hy); dmax = Math.max(dmax, pt.d);
     });
-    pts.forEach((pt) => { pt.delay = 0.75 * (pt.d / dmax) + 0.25 * R(); });
+    pts.forEach((pt) => { pt.delay = 0.15 + 0.6 * (pt.d / dmax) + 0.2 * R(); });   // leaves room for the news to travel
     return { W, H, band, hubs, pts };
   }
 
@@ -489,7 +504,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
   }
 
   // phase: 0..1 sources light up, 1..2 votes spread, 2..3 bought voters flip
-  function draw(p, phase) {
+  function draw(p, phase, clock) {
     if (!layout) return;
     const { W, H, band, hubs, pts } = layout;
     const C = { ink: css("--ink"), muted: css("--muted"), rule: css("--rule"), good: css("--good"), bad: css("--bad"), hub: css("--hub"), sheet: css("--sheet"), faint: css("--faint") };
@@ -507,6 +522,35 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     const bought = new Set(last ? last.sys.flatMap((r) => r.bought || []) : []);
     const listening = (i) => focus < 0 || pop.src[i].includes(focus);
     const spread = Math.max(0, Math.min(1, ph - 1)), flip = Math.max(0, Math.min(1, ph - 2));
+    // the news travelling: a dot runs from each source to each listener just before they vote
+    if (last && ph > 1 && ph < 2) {
+      const paths = { g: new Path2D(), b: new Path2D() };
+      for (let i = 0; i < pop.n; i++) {
+        const u = (spread - (pts[i].delay - 0.15)) / 0.15;
+        if (u <= 0 || u >= 1) continue;
+        for (const j of pop.src[i]) {
+          const hb = hubs[j], x = hb.x + (pts[i].x - hb.x) * u, y = hb.y + (pts[i].y - hb.y) * u;
+          paths[last.b[j] >= 0 ? "g" : "b"].rect(x - 1.2, y - 1.2, 2.4, 2.4);
+        }
+      }
+      ctx.fillStyle = C.good; ctx.fill(paths.g); ctx.fillStyle = C.bad; ctx.fill(paths.b);
+    }
+    // the rigger: a node of its own, wired to the channels it bought and the voters it turned
+    const rig = { x: W - 34, y: H - 20 }, showRig = last && (bought.size || p.cap > 0);
+    if (showRig) {
+      ctx.strokeStyle = C.bad; ctx.lineWidth = 0.8;
+      if (p.cap > 0) { ctx.setLineDash([4, 4]); ctx.globalAlpha = 0.5; ctx.beginPath(); for (let j = 0; j < Math.min(p.me, 12); j++) { ctx.moveTo(rig.x, rig.y); ctx.lineTo(hubs[j].x, hubs[j].y); } ctx.stroke(); ctx.setLineDash([]); }
+      if (bought.size && ph >= 2) {
+        const list = [...bought];
+        ctx.globalAlpha = flip >= 1 ? 0.25 : 0.55; ctx.beginPath();
+        list.forEach((i) => { ctx.moveTo(rig.x, rig.y); ctx.lineTo(pts[i].x, pts[i].y); }); ctx.stroke();
+        if (flip < 1) {
+          ctx.globalAlpha = 1; ctx.fillStyle = C.bad;
+          list.forEach((i, k) => { const u = Math.max(0, Math.min(1, flip * 1.6 - (k / list.length) * 0.6)); if (u > 0 && u < 1) ctx.fillRect(rig.x + (pts[i].x - rig.x) * u - 2, rig.y + (pts[i].y - rig.y) * u - 2, 4, 4); });
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
     for (let i = 0; i < pop.n; i++) {
       const pt = pts[i], v = last ? last.vote[i] : 0;
       let col = C.faint;
@@ -534,12 +578,17 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
         col = mix("#8a938e", lean > 0 ? C.good : C.bad, light * (0.35 + 0.65 * amp));
         rad = h.r * (1 + 0.6 * amp * light);
       }
+      if (clock) rad *= 1 + 0.12 * Math.sin(clock / 700 + j * 1.7);
       ctx.globalAlpha = focus < 0 || focus === j ? 1 : 0.3;
       ctx.fillStyle = col; ctx.beginPath(); ctx.arc(h.x, h.y, rad, 0, 2 * Math.PI); ctx.fill();
       ctx.strokeStyle = focus === j ? C.ink : C.sheet; ctx.lineWidth = focus === j ? 2 : 1.5; ctx.stroke();
       ctx.globalAlpha = 1;
       if (p.cap > 0 && j < p.me && p.me <= 12) { ctx.fillStyle = C.bad; ctx.font = "600 11px " + css("--body"); ctx.textAlign = "center"; ctx.fillText("bought", h.x, h.y + h.r + 22); ctx.textAlign = "left"; }
     });
+    if (showRig) {
+      ctx.fillStyle = C.bad; ctx.fillRect(rig.x - 7, rig.y - 7, 14, 14);
+      ctx.font = "600 10px " + css("--body"); ctx.textAlign = "right"; ctx.fillText("RIGGER", rig.x - 12, rig.y + 4); ctx.textAlign = "left";
+    }
   }
 
   function setBusy(on, msg) {
@@ -556,7 +605,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     if (reduceMotion || document.hidden) { finish(); return; }
     skip = finish;
     setBusy(true, "Counting the votes…");
-    const t0 = performance.now(), dur = [700, 1700, last.sys[1].bought || last.sys[0].bought ? 800 : 0];
+    const t0 = performance.now(), dur = [800, 2200, last.sys[1].bought || last.sys[0].bought ? 1300 : 0];
     const end = dur[0] + dur[1] + dur[2];
     const tick = (now) => {
       const t = now - t0;
@@ -576,11 +625,11 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
 
   function showElection(p, e, counted) {
     const final = counted >= 1, pts = layout.pts, G = css("--good"), B = css("--bad");
+    const ex = final ? explain(p, e, honest) : null;
     $("result").innerHTML = e.sys.map((r, j) => {
-      let good, all;
+      let good, all, sg = 0, sb = 0;
       if (final) { good = r.betterShare; all = 1; }
       else {
-        let sg = 0, sb = 0;
         for (let i = 0; i < pop.n; i++) {
           if (pts[i].delay > counted) continue;
           const wi = pop.edu[i] ? r.mult : 1;
@@ -591,12 +640,51 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
       const hs = honest ? honest.sys[j].betterShare : good, moved = final && Math.abs(hs - good) >= 0.001;
       const verdict = final ? (r.betterWins ? `<span class="verdict ok">&#10003; Good wins</span>` : `<span class="verdict no">&#10007; Bad wins</span>`)
                             : `<span class="verdict wait">counting…</span>`;
+      const nums = final
+        ? `<span>good ${moved && pct(hs) === pct(good) ? (100 * good).toFixed(1) + "%" : pct(good)}${moved ? ` <i>(${pct(hs) === pct(good) ? (100 * hs).toFixed(1) + "%" : pct(hs)} before rigging)</i>` : ""}</span><span>needs more than half</span><span>bad ${pct(all - good)}</span>`
+        : `<span>good ${Math.round(sg).toLocaleString("en-US")}</span><span>${pct(all)} counted</span><span>bad ${Math.round(sb).toLocaleString("en-US")}</span>`;
       return `<div class="sys"><div class="top"><span class="name">${sysName(p, j)}</span>${verdict}</div>
+        <p class="sub">${j ? `an educated vote counts ${p.m}` : "one person, one vote"}</p>
         <div class="bar" role="img" aria-label="good ${pct(good)}, bad ${pct(all - good)}">
           <div style="width:${100 * good}%;background:${G}"></div><div style="width:${100 * (all - good)}%;background:${B}"></div><span class="half"></span>${moved ? `<span class="was" style="left:${100 * hs}%"></span>` : ""}</div>
-        <div class="nums"><span>good ${pct(good)}${moved ? ` <i>(${pct(hs)} before rigging)</i>` : ""}</span><span>needs more than half</span><span>bad ${pct(all - good)}</span></div></div>`;
+        <div class="nums">${nums}</div>
+        <div class="why">${ex ? ex.per[j] : ""}</div></div>`;
     }).join("");
-    $("why").innerHTML = final ? explain(p, e, honest) : "";
+    $("why").innerHTML = ex ? ex.common + ex.compare : "";
+    $("headline").innerHTML = final ? headline(p, e, honest) : "";
+  }
+
+  function headline(p, e, h) {
+    const hw = h.sys.map((r) => r.betterWins), rw = e.sys.map((r) => r.betterWins);
+    const stolen = [0, 1].filter((j) => hw[j] && !rw[j]);
+    const tk = (x) => "Tk " + Math.round(x).toLocaleString("en-US");
+    const margin = (j) => { const wE = j ? p.m : 1, E = pop.edu.reduce((a, b) => a + b, 0), total = wE * E + (pop.n - E); return Math.round(Math.abs(e.sys[j].betterShare - 0.5) * total); };
+    let big, sub, red = stolen.length > 0;
+    if (stolen.length) {
+      const j = stolen.length === 2 ? 1 : stolen[0], r = e.sys[j];
+      const cost = stolen.reduce((a, k) => a + (e.sys[k].bought ? e.sys[k].cost : 0), 0);
+      const how = r.bought ? (r.intimidated === r.bought.length ? "of threats" : r.intimidated ? "of cash and threats" : "of cash") : "";
+      if (stolen.length === 2) big = r.bought || e.sys[0].bought ? "Stolen both ways." : "The bought news stole it both ways.";
+      else if (r.bought) big = `${tk(r.cost)} ${how} stole the ${j ? "weighted" : "one-person-one-vote"} election.`;
+      else big = `The bought news stole the ${j ? "weighted" : "one-person-one-vote"} election.`;
+      const nE = r.bought ? r.bought.filter((i) => pop.edu[i]).length : 0;
+      if (stolen.length === 2 && (r.bought || e.sys[0].bought)) {
+        const part = (k) => e.sys[k].bought ? `${tk(e.sys[k].cost)} turned ${e.sys[k].bought.length} voter${e.sys[k].bought.length === 1 ? "" : "s"} under ${k ? "educated \u00d7" + p.m : "equal votes"}` : `the bought news alone did it under ${k ? "educated \u00d7" + p.m : "equal votes"}`;
+        sub = `${part(0)}; ${part(1)}.`;
+      } else sub = r.bought ? `${r.bought.length} voter${r.bought.length === 1 ? "" : "s"} turned${nE ? `, ${nE === r.bought.length ? "all" : nE} educated` : ", none educated"}. `
+        + (stolen.length === 1 ? (hw[1 - j] ? `The ${j ? "one-person-one-vote" : "weighted"} count held.` : `The other count was lost anyway.`) : "")
+        : `The channels the educated follow did it.`;
+    } else if (!hw[0] && !hw[1]) { big = "Nobody had to rig this one."; sub = "The bad candidate was ahead both ways before anyone paid a taka."; }
+    else if (hw[0] !== hw[1]) { big = "Same voters. Opposite winners."; sub = `The good candidate won with ${hw[0] ? "equal votes" : `educated ×${p.m}`} and lost with ${hw[0] ? `educated ×${p.m}` : "equal votes"}, before any rigging.`; }
+    else { big = p.bud > 0 || p.cap > 0 ? "The rigging failed." : "The good candidate won. Twice."; sub = p.bud > 0 || p.cap > 0 ? "The good candidate won both ways despite it." : "A fair election, and both ways of counting got it right."; }
+    // closeness only for results the rigger did not touch (a bought count is tipped by just enough on purpose)
+    const untouched = [0, 1].filter((j) => !e.sys[j].bought && !(p.cap > 0 && hw[j] !== rw[j]));
+    if (untouched.length) {
+      const close = Math.min(...untouched.map(margin));
+      if (close === 0) sub += " One count ended in a tie, which goes to the bad candidate.";
+      else if (close <= 10) sub += ` One count was decided by ${close} vote${close === 1 ? "" : "s"}.`;
+    }
+    return `<b class="${red ? "stolen" : ""}">${big}</b><span>${sub}</span>`;
   }
 
   // Everything here is computed from this election's draws, not picked from canned lines.
@@ -645,7 +733,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
   }
 
   function explain(p, e, h) {
-    const q = p.q, out = [];
+    const q = p.q, out = [], per = [[], []], cmp = [];
     const group = (edu) => {
       let n = 0, pushH = 0, pushR = 0, gH = 0, gR = 0;
       for (let i = 0; i < pop.n; i++) {
@@ -674,35 +762,34 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
         if (r.bought) {
           const nE = r.bought.filter((i) => pop.edu[i]).length, weight = nE * wE + (r.bought.length - nE);
           const how = r.intimidated === r.bought.length ? "threatened" : r.intimidated ? "bought or threatened" : "bought";
-          return `With ${name}, the good candidate was ahead until the rigger ${how} ${plural(r.bought.length, "voter")}`
+          return `The good candidate was ahead until the rigger ${how} ${plural(r.bought.length, "voter")}`
             + (nE === r.bought.length ? (nE > 1 ? ", all educated," : ", an educated one,") : nE ? ` (${nE} of them educated)` : "")
             + ` for ${lakh(r.cost)}. ` + (weight !== r.bought.length ? `Those were worth ${plural(weight, "vote")} here, enough to flip it` : "That was enough to flip it")
             + (p.cap > 0 && E.gH > E.gR ? `, on top of the bought TV news, which had already turned ${plural(E.gH - E.gR, "educated voter")}.` : ".");
         }
-        return `With ${name}, the good candidate was ahead until the bought TV news turned ${plural(E.gH - E.gR, "educated voter")}` + (j ? `, each worth ${wE} votes here` : "") + `. That flipped it.`;
+        return `The good candidate was ahead until the bought TV news turned ${plural(E.gH - E.gR, "educated voter")}` + (j ? `, each worth ${wE} votes here` : "") + `. That flipped it.`;
       }
       if (!hw[j]) {
         const eBad = 1 - E.gH / E.n, uBad = 1 - U.gH / U.n;
         const who = eBad > 0.5 && uBad > 0.5 ? "both the educated and everyone else" : eBad > 0.5 ? `the educated (${pct(eBad)} of them)` : `everyone else (${pct(uBad)} of them)`;
-        return `With ${name}, the bad candidate was ahead before any rigging: ${who} leaned bad, mostly from the news they heard and their own misjudgement.`;
+        return `The bad candidate was ahead before any rigging: ${who} leaned bad, mostly from the news they heard and their own misjudgement.`;
       }
-      if (p.bud > 0 || p.cap > 0) return `With ${name}, the good candidate won, and the rigging was not enough to change that.`;
-      return `With ${name}, the good candidate won.`;
+      if (p.bud > 0 || p.cap > 0) return `The good candidate won, and the rigging was not enough to change that.`;
+      return `The good candidate won.`;
     };
-    out.push(`<b>In short.</b> ${shortFor(0)} ${shortFor(1)}`);
+    [0, 1].forEach((j) => per[j].push(`<b>In short.</b> ${shortFor(j)}`));
 
     // was this election typical?
     const ty = typical(p), rigged = p.bud > 0 || p.cap > 0;
     const rate = (j) => `${pct(ty.won[j])} of the time` + (rigged ? ` (${pct(ty.fair[j])} without rigging)` : "");
     const odd = [0, 1].filter((j) => (rw[j] && ty.won[j] < 0.3) || (!rw[j] && ty.won[j] > 0.7));
-    out.push(`<b>Is this normal?</b> Replaying ${ty.T} elections with exactly these settings, the good candidate wins ${rate(0)} with equal votes and ${rate(1)} with educated ×${p.m}. `
-      + (odd.length ? `So this result ${odd.length === 2 ? "was unusual both ways of counting" : `was unusual with ${cname(p, odd[0])}`}: the dice fell oddly this time.`
-        : "So this one was fairly typical for these settings."));
+    [0, 1].forEach((j) => per[j].push(`<b>Is this normal?</b> Replaying ${ty.T} elections with exactly these settings, the good candidate wins ${rate(j)} under this count. `
+      + (odd.includes(j) ? "So this result was unusual: the dice fell oddly this time." : "So this one was fairly typical.")));
 
     // why the two counts give different numbers: exact arithmetic on the honest votes
     {
       const rE = E.gH / E.n, rU = U.gH / U.n, w1 = E.n / pop.n, w2 = p.m * E.n / (p.m * E.n + U.n), d = (w2 - w1) * (rE - rU);
-      out.push(`<b>Why the two counts give different numbers.</b> Educated ×${p.m} raises the educated's share of the say from ${pct(w1)} to ${pct(w2)}. `
+      cmp.push(`<b>Why the two counts give different numbers.</b> Educated ×${p.m} raises the educated's share of the say from ${pct(w1)} to ${pct(w2)}. `
         + `Before any rigging they picked the good candidate ${pct(rE)} of the time, against ${pct(rU)} for everyone else, `
         + `so the extra weight moved the good candidate's share by ${(100 * d >= 0 ? "+" : "−") + Math.abs(100 * d).toFixed(1)} points. `
         + (Math.abs(rE - rU) < 0.02 ? "The two groups were about equally right, so weighting barely mattered."
@@ -715,10 +802,14 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
       const wE = j ? p.m : 1, total = wE * E.n + U.n;
       return Math.round(Math.abs(r.betterShare - 0.5) * total);
     });
-    out.push(`<b>The margins.</b> ` + e.sys.map((r, j) => `${j ? "with" : "With"} ${cname(p, j)} the ${r.betterWins ? "good" : "bad"} candidate won by ${plural(margin[j], "vote")}${j ? " (each educated vote counting " + p.m + ")" : ""}`).join("; ") + ". "
-      + (Math.min(...margin) <= 20
-        ? `That is close: about ${plural(Math.max(1, Math.ceil(Math.min(...margin) / 2)), "ordinary voter")} switching sides would have flipped the result with ${cname(p, margin.indexOf(Math.min(...margin)))}.`
-        : "Neither was close."));
+    [0, 1].forEach((j) => {
+      const r = e.sys[j], wE = j ? p.m : 1, total = wE * E.n + U.n;
+      per[j].push(`<b>Who has the say.</b> ${E.n} educated and ${U.n} others. ` + (j
+        ? `Each educated vote counts ${wE}, so the educated hold ${(wE * E.n).toLocaleString("en-US")} of the ${total.toLocaleString("en-US")} votes of weight: ${pct(wE * E.n / total)} of the say from ${pct(E.n / pop.n)} of the people.`
+        : `One vote each, so the educated hold ${pct(E.n / pop.n)} of the say.`));
+      per[j].push(`<b>The margin.</b> The ${r.betterWins ? "good" : "bad"} candidate won by ${plural(margin[j], "vote")}${j ? " of weight" : ""}. `
+        + (margin[j] <= 20 ? `That is close: about ${plural(Math.max(1, Math.ceil(margin[j] / 2)), "ordinary voter")} switching sides would have flipped it.` : "Not close."));
+    });
 
     // the educated
     let top = 0; for (let j = 1; j < p.me; j++) if (Math.abs(h.b[j]) > Math.abs(h.b[top])) top = j;
@@ -799,27 +890,27 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
           if (cu && ce) s += `Per vote it buys, the cheapest ordinary voters cost about ${lakh(cu)} and the cheapest educated ones about ${lakh(ce)} here, so ${Math.abs(ce - cu) < 0.1 * cu ? "they cost about the same per vote" : ce < cu ? "educated votes were the better deal" : "ordinary votes were the better deal"}. `;
         }
         s += `${lakh(budget - r.cost)} was left over.`;
-        out.push(s);
+        per[j].push(s);
       } else if (h.sys[j].betterWins && !e.sys[j].betterWins) {
-        out.push(`<b>The rigger, ${cname(p, j)}:</b> paid nobody. The bought news had already turned this result, so the money was not needed.`);
+        per[j].push(`<b>The rigger, ${cname(p, j)}:</b> paid nobody. The bought news had already turned this result, so the money was not needed.`);
       } else if (!h.sys[j].betterWins) {
-        out.push(`<b>The rigger, ${cname(p, j)}:</b> paid nobody. The bad candidate was winning this one without help.`);
+        per[j].push(`<b>The rigger, ${cname(p, j)}:</b> paid nobody. The bad candidate was winning this one without help.`);
       } else if (e.sys[j].betterWins) {
         const f = flipCost(pop, e.vote, wE);
-        out.push(`<b>The rigger, ${cname(p, j)}:</b> to flip it they needed to turn ${plural(f.need, "vote")} (an educated vote counts ${wE}). The cheapest way was ${plural(f.k, "voter")} for ${lakh(f.cost)}, `
+        per[j].push(`<b>The rigger, ${cname(p, j)}:</b> to flip it they needed to turn ${plural(f.need, "vote")} (an educated vote counts ${wE}). The cheapest way was ${plural(f.k, "voter")} for ${lakh(f.cost)}, `
           + `${(f.cost / budget).toFixed(1)}× their budget of ${lakh(budget)}, so they paid nobody.` + (j ? ` Educated votes count ${wE} here, but every cheap vote still counts 1.` : ""));
       }
     });
 
     // why the two honest counts differ
-    if (hw[0] !== hw[1]) out.push(`<b>Why the two ways of counting disagree:</b> the educated went ${pct(E.gH / E.n)} good and everyone else ${pct(U.gH / U.n)}. With equal votes the educated have ${pct(E.n / pop.n)} of the say; with educated ×${p.m} they have ${pct(p.m * E.n / (p.m * E.n + U.n))}, so their result decides more of it.`);
+    if (hw[0] !== hw[1]) cmp.push(`<b>Why they disagree:</b> the educated went ${pct(E.gH / E.n)} good and everyone else ${pct(U.gH / U.n)}. With equal votes the educated have ${pct(E.n / pop.n)} of the say; with educated ×${p.m} they have ${pct(p.m * E.n / (p.m * E.n + U.n))}, so their result decides more of it.`);
 
     const stolen = [0, 1].filter((j) => hw[j] && !rw[j]);
-    let verdict;
-    if (!(p.bud > 0 || p.cap > 0)) verdict = hw[0] && hw[1] ? "No rigging, and both counts got it right." : "No rigging. Every wrong result here came from the news slanting by chance and from voters' own mistakes.";
-    else if (!stolen.length) verdict = rw[0] || rw[1] ? "The rigging did not change who won." : "Nothing to steal: the bad candidate was winning both ways of counting anyway.";
-    else if (stolen.length === 2) verdict = "Stolen both ways of counting.";
-    else verdict = `Stolen with ${cname(p, stolen[0])} only` + (hw[1 - stolen[0]] ? `; with ${cname(p, 1 - stolen[0])} it held.` : `; with ${cname(p, 1 - stolen[0])} the bad candidate was winning anyway.`);
+    const rigged2 = p.bud > 0 || p.cap > 0;
+    const verdictFor = (j) => !rigged2 ? (hw[j] ? "Fair election, right result." : "Fair election, wrong result: slanted news and voters' own misjudgement did it.")
+      : stolen.includes(j) ? "Stolen: without the rigging, the good candidate would have won."
+      : !hw[j] ? "Lost before any rigging: the bad candidate was ahead anyway."
+      : "Held: the rigging did not change the result.";
     let lesson = "";
     const thr = e.sys[1].bought && e.sys[1].intimidated > 0, paid0 = e.sys[0].bought && e.sys[0].intimidated < e.sys[0].bought.length;
     if (stolen.includes(1) && thr) lesson = "Making some votes worth more makes those voters the first target. A threat costs the same for anyone, so the weighted voters are the cheapest way to steal it.";
@@ -828,7 +919,12 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     else if (!hw[1] && hw[0]) lesson = "The educated were better judges one by one, but they got the same wrong news together, and weighting made that shared mistake decide the election.";
     else if (hw[1] && !hw[0]) lesson = "Here the educated were right when everyone else was swayed, and weighting gave them the say to fix it.";
     else if (!hw[0] && !hw[1]) lesson = "When most people's news points the wrong way, no way of counting rescues the good candidate.";
-    return `<ul>${out.map((x) => `<li>${x}</li>`).join("")}</ul><p class="verdict-line">${verdict}</p>` + (lesson ? `<p class="lesson">${lesson}</p>` : "");
+    const ul = (xs) => `<ul>${xs.map((x) => `<li>${x}</li>`).join("")}</ul>`;
+    return {
+      per: [0, 1].map((j) => ul(per[j]) + `<p class="verdict-line">${verdictFor(j)}</p>`),
+      common: `<h3>What everyone heard this election</h3>` + ul(out),
+      compare: (cmp.length ? `<h3>Comparing the two</h3>` + ul(cmp) : "") + (lesson ? `<p class="lesson">${lesson}</p>` : ""),
+    };
   }
 
   function runChart(series, T) {
@@ -985,9 +1081,18 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     honest = election(Object.assign({}, p, { bud: 0, cap: 0 }), pop, rng(sd));
     return p;
   }
+  const session = { n: 0, stolen: [0, 0], spent: 0 };
+  function record() {
+    session.n++;
+    for (const j of [0, 1]) if (honest.sys[j].betterWins && !last.sys[j].betterWins) session.stolen[j]++;
+    session.spent += last.sys.reduce((a, r) => a + (r.bought ? r.cost : 0), 0);
+    $("tally").hidden = false;
+    $("tally").innerHTML = `<div>Elections you held<b>${session.n}</b></div><div>Stolen: equal / ×${params().m}<b>${session.stolen[0]} / ${session.stolen[1]}</b></div><div>Rigger spent, both counts<b>${lakh(session.spent)}</b></div>`;
+  }
   $("b-one").addEventListener("click", () => {
     if (busy) return;
     const p = hold(seed * 97 + (++electionCount));
+    record();
     play(p, `Election ${electionCount} done. Hold another, or run 1,000.`);
   });
   function findStolen(test, max) {
@@ -1040,6 +1145,9 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
   IDS.forEach((id) => $(id).addEventListener(id === "mix" ? "change" : "input", () => rebuild("Variable changed. Hold an election or run 1,000 to see the effect.")));
   let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { layout = makeLayout(params()); draw(params()); }, 150); });
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => draw(params()));
+
+  // between elections the sources keep breathing, so the picture never looks frozen
+  if (!reduceMotion) setInterval(() => { if (!busy && !document.hidden && layout && pop) draw(params(), 3, performance.now()); }, 90);
 
   window.__ballot = { population, election, rng, params };     // used to check the page against the Python model
   rebuild();
