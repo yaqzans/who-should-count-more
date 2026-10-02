@@ -66,7 +66,7 @@ button:disabled { opacity: 0.5; cursor: wait; }
 .headline b { display: block; font-family: var(--display); font-weight: 400; font-size: clamp(1.6rem, 3.6vw, 2.6rem); line-height: 1; text-transform: uppercase; }
 .headline b.stolen { color: var(--bad); }
 .headline span { display: block; margin-top: 6px; color: var(--muted); font-size: 0.9rem; }
-.tally { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; border-top: 1px solid var(--rule); padding-top: 10px; }
+.tally { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; border-top: 1px solid var(--rule); padding-top: 10px; }
 .tally div { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
 .tally b { display: block; font-size: 1.15rem; color: var(--ink); letter-spacing: 0; text-transform: none; }
 .sys .sub { margin: -2px 0 6px; font-size: 0.78rem; color: var(--muted); }
@@ -1097,7 +1097,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     for (const j of [0, 1]) if (honest.sys[j].betterWins && !last.sys[j].betterWins) session.stolen[j]++;
     session.spent += last.sys.reduce((a, r) => a + (r.bought ? r.cost : 0), 0);
     $("tally").hidden = false;
-    $("tally").innerHTML = `<div>Elections you held<b>${session.n}</b></div><div>Stolen: equal / ×${params().m}<b>${session.stolen[0]} / ${session.stolen[1]}</b></div><div>Rigger spent, both counts<b>${lakh(session.spent)}</b></div>`;
+    $("tally").innerHTML = `<div>Elections you held<b>${session.n}</b></div><div>Stolen with equal votes<b>${session.stolen[0]} of ${session.n}</b></div><div>Stolen with educated ×${params().m}<b>${session.stolen[1]} of ${session.n}</b></div><div>Rigger spent, both counts<b>${lakh(session.spent)}</b></div>`;
   }
   $("b-one").addEventListener("click", () => {
     if (busy) return;
