@@ -1,13 +1,63 @@
 # Who Should Count More?
 
-An interactive voting experiment. Every dot is a voter, linked to the news
-sources they follow; two candidates stand and one is genuinely better. Hold an
-election and watch it counted twice, once with every vote equal and once with
-educated votes counting more, then hold a thousand and see which system picks
-the better candidate more often. Add family vote banks, a briber, or cheap
-intimidation and watch what changes.
+**Live: https://yaqzans.github.io/who-should-count-more/**
 
-Everything runs in the browser. There is no server and nothing is collected.
+Should educated people's votes count more? There is a good candidate and a bad
+one, and 1,001 voters each guess which is which, nudged by the news they
+follow. Every election is counted twice, once with every vote equal and once
+with educated votes counting extra, and you can see which way picks the good
+candidate more often.
+
+1. **Pick a world.** Two are made up to show the idea; three are tuned to real
+   survey data for Bangladesh, India and Pakistan.
+2. **Hold elections.** Watch one get counted, jump to an upset where the two
+   counts disagree, or run 1,000.
+3. **Read the result.** Every election comes with one plain sentence on why
+   it went the way it did.
+
+The answer turns on one thing: **do educated voters share their mistakes?**
+One by one they guess better. But if they all watch the same few channels,
+then when those channels are wrong, they are all wrong together, and giving
+them extra votes makes that shared mistake bigger.
+
+How often the good candidate won, out of 1,200 elections per world
+(`check/worlds.js`, the page's default settings):
+
+| world | every vote equal | educated votes 5x |
+|---|---|---|
+| Same 3 channels (made up) | 0.692 | 0.621 |
+| Read widely, 100 channels (made up) | 0.873 | 0.912 |
+| Bangladesh 2018 | 0.897 | 0.796 |
+| India 2023 | 0.838 | 0.750 |
+| Pakistan 2018 | 0.960 | 0.936 |
+
+## The real-data worlds
+
+These come from World Values Survey wave 7 and use two numbers per country:
+
+- the share of adults with higher education
+- how much people in the same region make the same mistake on three factual
+  questions (the regional intraclass correlation of wrong answers, for the
+  educated and for everyone else)
+
+The page sets the news-source bias so that the model's share of shared error
+matches those correlations.
+
+| country | higher education | shared error, educated | shared error, others |
+|---|---|---|---|
+| Bangladesh 2018 | 103 of 1,199 | 0.131 | 0.054 |
+| India 2023 | 391 of 1,689 | 0.111 | 0.124 |
+| Pakistan 2018 | 207 of 1,992 | 0.024 | 0.028 |
+
+This calibration is rough:
+
+- the questions were trivia, not judgements of candidates
+- regions are a coarse stand-in for shared news sources
+- the surveys cannot see how many channels people actually share, so the
+  channel count stays at 3
+
+Africa is not included, because Afrobarometer does not ask the factual
+questions this needs.
 
 ## Run it
 
@@ -39,6 +89,7 @@ survey evidence) that is not public yet.
 
 ## Checked against the research model
 
+The page's simplified controls sit on the full model's engine, unchanged.
 `check/validate.js` reruns five cells of that model's sweeps with this page's
 own engine. Last run, 2 October 2026 (8 electorates x 500 elections each;
 expected agreement about 0.01 to 0.02):

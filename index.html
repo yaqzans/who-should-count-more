@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a polling-day instrument. The electorate drawn as a network on the left, the ballot and the running count on the right, settings below. */
+/* One question, one main button. The crowd on the left, the result on the right, four settings below. */
 :root {
   --paper: #eef1ee;
   --sheet: #fbfcfb;
@@ -18,12 +18,10 @@
   --muted: #5c6863;
   --rule: #d6ddd8;
   --faint: #e3e8e4;
-  --lantern: #2a78d6;
-  --kite: #eb6834;
+  --good: #1f9d63;
+  --bad: #d6453a;
   --equal: #39433f;
-  --weighted: #1baf7a;
-  --good: #1b7f52;
-  --bad: #b8432f;
+  --weighted: #7a5af5;
   --hub: #39433f;
   --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
@@ -31,76 +29,87 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #131816; --sheet: #1b211e; --ink: #e8ece9; --muted: #a2aea8; --rule: #2e3733; --faint: #242b28;
-    --lantern: #3987e5; --kite: #d95926; --equal: #c9d2cd; --weighted: #199e70; --good: #4fbf8a; --bad: #e07a62; --hub: #c9d2cd;
+    --paper: #131816; --sheet: #1b211e; --ink: #e8ece9; --muted: #a2aea8; --rule: #2e3733; --faint: #2a322e;
+    --good: #3fbf82; --bad: #e8604f; --equal: #c9d2cd; --weighted: #9b85ff; --hub: #c9d2cd;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #131816; --sheet: #1b211e; --ink: #e8ece9; --muted: #a2aea8; --rule: #2e3733; --faint: #242b28;
-  --lantern: #3987e5; --kite: #d95926; --equal: #c9d2cd; --weighted: #199e70; --good: #4fbf8a; --bad: #e07a62; --hub: #c9d2cd;
+  --paper: #131816; --sheet: #1b211e; --ink: #e8ece9; --muted: #a2aea8; --rule: #2e3733; --faint: #2a322e;
+  --good: #3fbf82; --bad: #e8604f; --equal: #c9d2cd; --weighted: #9b85ff; --hub: #c9d2cd;
   color-scheme: dark;
 }
-body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
-.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 22px 40px; display: grid; gap: 18px; }
-header { display: grid; gap: 4px; }
-h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 3.2vw, 2.3rem); line-height: 1.1; margin: 0; text-wrap: balance; }
-.lede { margin: 0; color: var(--muted); max-width: 74ch; }
-.main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px; align-items: start; }
-@media (max-width: 900px) { .main { grid-template-columns: minmax(0, 1fr); } }
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 22px 40px; display: grid; gap: 18px; }
+header { display: grid; gap: 6px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.7rem, 3.4vw, 2.4rem); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 68ch; }
+.main { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .side { display: contents; }     /* phone: pick, press, watch, read */
+  #card-world { order: 1; } #card-go { order: 2; } #card-net { order: 3; } #card-res { order: 4; }
+}
 .side { display: grid; gap: 18px; min-width: 0; }
-.card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 14px; min-width: 0; }
-h2 { font-family: var(--display); font-weight: 500; font-size: 1.1rem; margin: 0 0 8px; }
-.eyebrow { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 2px; }
+.card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 16px; min-width: 0; }
+h2 { font-family: var(--display); font-weight: 500; font-size: 1.15rem; margin: 0 0 8px; }
+.step { display: inline-grid; place-items: center; width: 1.5em; height: 1.5em; border-radius: 50%; background: var(--ink); color: var(--sheet); font: 600 0.8rem var(--body); margin-right: 6px; vertical-align: 2px; }
 .netbox { position: relative; }
-canvas { width: 100%; display: block; border-radius: 4px; background: var(--sheet); cursor: crosshair; }
-.tip { position: absolute; pointer-events: none; background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 5px 8px; font-size: 0.8rem; line-height: 1.35; max-width: 250px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.82rem; color: var(--muted); margin-top: 8px; }
-.legend i { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
-.dot { border-radius: 50%; }
-.buttons { display: flex; flex-wrap: wrap; gap: 8px; }
-button { font: 600 0.92rem var(--body); border-radius: 4px; padding: 8px 14px; border: 1px solid var(--ink); background: var(--ink); color: var(--sheet); cursor: pointer; }
+canvas { width: 100%; display: block; border-radius: 4px; background: var(--sheet); }
+.tip { position: absolute; pointer-events: none; background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 5px 8px; font-size: 0.82rem; line-height: 1.35; max-width: 240px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.86rem; color: var(--muted); margin-top: 10px; }
+.legend i { display: inline-block; width: 11px; height: 11px; margin-right: 6px; vertical-align: -1px; border-radius: 50%; }
+.actions { display: grid; gap: 10px; }
+button { font: 600 1rem var(--body); border-radius: 6px; padding: 12px 16px; border: 1px solid var(--ink); background: var(--ink); color: var(--sheet); cursor: pointer; width: 100%; text-align: left; }
+button small { display: block; font-weight: 400; font-size: 0.82rem; opacity: 0.8; }
 button.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
-button:hover { filter: brightness(1.12); }
-button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--lantern); outline-offset: 2px; }
-button:disabled { opacity: 0.55; cursor: progress; }
-.ballot { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-.cand { border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px; display: grid; grid-template-columns: 34px 1fr; gap: 2px 10px; align-items: center; }
-.cand svg { grid-row: span 2; }
-.cand b { font-family: var(--display); font-weight: 500; }
-.cand span { font-size: 0.8rem; color: var(--muted); }
-.cand.better { border-color: var(--good); box-shadow: inset 0 0 0 1px var(--good); }
-.tally { display: grid; gap: 10px; }
-.trow { display: grid; gap: 3px; }
-.trow .lab { display: flex; justify-content: space-between; gap: 8px; font-size: 0.86rem; font-variant-numeric: tabular-nums; }
-.bar { position: relative; height: 18px; border-radius: 3px; overflow: hidden; background: var(--faint); display: flex; }
+button.ghost:hover { border-color: var(--ink); }
+button:hover { filter: brightness(1.1); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--weighted); outline-offset: 2px; }
+button:disabled { opacity: 0.5; cursor: wait; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 420px) { .row2 { grid-template-columns: 1fr; } }
+.status { font-size: 0.9rem; color: var(--muted); min-height: 1.4em; margin: 0; }
+.result { display: grid; gap: 14px; }
+.sys { display: grid; gap: 4px; }
+.sys .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.sys .name { font-weight: 600; }
+.verdict { font-family: var(--display); font-weight: 700; font-size: 1.05rem; white-space: nowrap; }
+.verdict.ok { color: var(--good); }
+.verdict.no { color: var(--bad); }
+.verdict.wait { color: var(--muted); font-weight: 500; }
+.bar { position: relative; height: 22px; border-radius: 4px; overflow: hidden; background: var(--faint); display: flex; }
 .bar div { height: 100%; }
-.bar .half { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: var(--ink); opacity: 0.7; }
-.mark { font-family: var(--mono); font-size: 0.78rem; font-weight: 500; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--rule); color: var(--muted); }
-.mark.ok { color: var(--good); border-color: var(--good); }
-.mark.no { color: var(--bad); border-color: var(--bad); }
-.note { font-size: 0.84rem; color: var(--muted); margin: 8px 0 0; }
-.big { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.stat { border-left: 3px solid var(--rule); padding: 2px 0 2px 10px; }
-.stat span { display: block; font-size: 0.78rem; color: var(--muted); }
-.stat b { font-family: var(--mono); font-weight: 500; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
-.stat small { display: block; font-family: var(--mono); font-size: 0.76rem; color: var(--muted); }
+.bar .half { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--ink); }
+.nums { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.why { margin: 0; padding: 10px 12px; border-radius: 6px; background: var(--faint); font-size: 0.95rem; }
+.why:empty { display: none; }
+.score { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat { border-left: 4px solid var(--rule); padding: 2px 0 2px 10px; }
+.stat span { display: block; font-size: 0.85rem; color: var(--muted); }
+.stat b { font-family: var(--mono); font-weight: 500; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
 .run svg { width: 100%; height: auto; display: block; margin-top: 8px; }
-.controls { display: grid; gap: 8px; }
-details { border-top: 1px solid var(--rule); padding-top: 8px; }
-summary { cursor: pointer; font-family: var(--display); font-weight: 500; }
-.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 18px; margin-top: 8px; }
-label { display: grid; gap: 1px; font-size: 0.85rem; }
-label .row { display: flex; justify-content: space-between; gap: 6px; }
-label .v { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-label .hint { font-size: 0.76rem; color: var(--muted); }
-input[type=range] { width: 100%; accent-color: var(--lantern); }
-select { font: 0.88rem var(--body); padding: 4px; border: 1px solid var(--rule); border-radius: 4px; background: var(--sheet); color: var(--ink); }
-.presets { display: flex; flex-wrap: wrap; gap: 6px; }
-.presets button { font-size: 0.82rem; padding: 5px 10px; }
-.speed { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--muted); }
-footer { color: var(--muted); font-size: 0.82rem; max-width: 90ch; }
-footer a { color: inherit; }
+.note { font-size: 0.88rem; color: var(--muted); margin: 8px 0 0; }
+.sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 24px; }
+label { display: grid; gap: 2px; }
+label .row { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; font-size: 0.95rem; }
+label .v { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; color: var(--weighted); }
+label .hint { font-size: 0.82rem; color: var(--muted); }
+input[type=range] { width: 100%; accent-color: var(--weighted); margin: 4px 0; }
+.ctlhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+.group { margin: 10px 0 6px; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.group:first-of-type { margin-top: 0; }
+.worlds { display: grid; gap: 8px; }
+.w2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.w3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 420px) { .w2 { grid-template-columns: 1fr; } .w3 button { padding: 8px; } }
+.worlds button { padding: 10px 12px; font-size: 0.95rem; }
+.more summary { cursor: pointer; font-family: var(--display); font-weight: 500; font-size: 1.1rem; }
+.more[open] summary { margin-bottom: 10px; }
+.world[aria-pressed="true"] { border-color: var(--weighted); box-shadow: inset 0 0 0 2px var(--weighted); }
+.world[aria-pressed="true"]::before { content: "✓ selected"; display: block; font-size: 0.78rem; color: var(--weighted); }
+.ctlhead button { width: auto; padding: 6px 12px; font-size: 0.88rem; }
+footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
 </style>
 </head>
 <body>
@@ -108,162 +117,98 @@ footer a { color: inherit; }
 
 <div class="wrap">
   <header>
-    <p class="eyebrow">A voting experiment</p>
-    <h1>Who Should Count More?</h1>
-    <p class="lede">Every dot is a voter, linked to the news sources they follow. Two candidates stand; one of them is
-      genuinely better. Hold an election: each source leans one way, the lean spreads to the people who listen to it,
-      and the count runs twice, once with every vote equal and once with educated votes counting more. Then hold a
-      thousand and see which system picks the better candidate more often.</p>
+    <h1>Should educated votes count more?</h1>
+    <p class="lede">There's a <b style="color:var(--good)">good candidate</b> and a <b style="color:var(--bad)">bad candidate</b>.
+      1,001 voters each guess who's better, nudged by the news they follow, and plenty of them guess wrong. We count every election twice:
+      once with every vote equal, once with educated votes counting extra. Which way picks the good candidate more often?</p>
   </header>
 
   <div class="main">
-    <section class="card" aria-labelledby="h-net">
-      <p class="eyebrow">The electorate</p>
-      <h2 id="h-net">Voters and the sources they listen to</h2>
+    <section class="card" id="card-net" aria-labelledby="h-net">
+      <h2 id="h-net">The voters</h2>
       <div class="netbox">
-        <canvas id="net" aria-label="Voters drawn as dots around their news sources, coloured by their vote"></canvas>
+        <canvas id="net" aria-label="Voters drawn as dots around the news sources they follow, coloured by their vote"></canvas>
         <div class="tip" id="tip" hidden></div>
       </div>
       <div class="legend" aria-hidden="true">
-        <span><i class="dot" style="background:var(--lantern)"></i>votes Lantern</span>
-        <span><i class="dot" style="background:var(--kite)"></i>votes Kite</span>
-        <span><i class="dot" style="border:2px solid var(--ink)"></i>educated</span>
-        <span><i style="background:var(--muted)"></i>square: in a family vote bank</span>
-        <span>large circles: news sources, coloured by which way they lean this election</span>
-        <span>&#215; bought or intimidated (in the weighted count)</span>
+        <span><i style="background:var(--good)"></i>voted good</span>
+        <span><i style="background:var(--bad)"></i>voted bad</span>
+        <span><i style="border:2px solid var(--ink)"></i>educated (ringed)</span>
+        <span><i style="background:var(--hub);width:14px;height:14px"></i>news source (turns the colour it pushes)</span>
       </div>
-      <p class="note">Hover a voter to see who they are. Click a news source to pick out everyone who listens to it; click again to clear.</p>
     </section>
 
     <div class="side">
-      <section class="card" aria-labelledby="h-ballot">
-        <p class="eyebrow">The ballot</p>
-        <h2 id="h-ballot">This election</h2>
-        <div class="ballot">
-          <div class="cand" id="c-lantern">
-            <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="11" y="4" width="12" height="4" rx="1" fill="var(--lantern)"/><path d="M9 10h16l-2 16H11z" fill="none" stroke="var(--lantern)" stroke-width="2.5"/><circle cx="17" cy="18" r="3.5" fill="var(--lantern)"/><rect x="10" y="27" width="14" height="3" rx="1" fill="var(--lantern)"/></svg>
-            <b>Lantern</b><span id="q-lantern">quality hidden</span>
-          </div>
-          <div class="cand" id="c-kite">
-            <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><path d="M17 3l10 11-10 13L7 14z" fill="none" stroke="var(--kite)" stroke-width="2.5"/><path d="M17 3v24M7 14h20" stroke="var(--kite)" stroke-width="1.5"/><path d="M17 27c-2 2 2 3 0 5" stroke="var(--kite)" stroke-width="1.5" fill="none"/></svg>
-            <b>Kite</b><span id="q-kite">quality hidden</span>
-          </div>
+      <section class="card" id="card-world" aria-labelledby="h-world">
+        <h2 id="h-world"><span class="step">1</span>Pick a world</h2>
+        <p class="group">Made-up, to show the idea</p>
+        <div class="worlds w2">
+          <button class="ghost world" data-world="few" aria-pressed="true">Same 3 channels<small>The educated all watch the same few big outlets</small></button>
+          <button class="ghost world" data-world="wide" aria-pressed="false">Read widely<small>The educated spread across 100 channels</small></button>
         </div>
-        <div class="buttons">
-          <button id="b-one">Hold one election</button>
-          <button id="b-many" class="ghost">Hold 1,000 elections</button>
-          <button id="b-pop" class="ghost">New population</button>
+        <p class="group">Tuned to real survey data (World Values Survey)</p>
+        <div class="worlds w3">
+          <button class="ghost world" data-world="bd" aria-pressed="false">Bangladesh<small>2018 survey</small></button>
+          <button class="ghost world" data-world="in" aria-pressed="false">India<small>2023 survey</small></button>
+          <button class="ghost world" data-world="pk" aria-pressed="false">Pakistan<small>2018 survey</small></button>
         </div>
-        <label class="speed" for="anim"><input id="anim" type="checkbox" checked> animate the count</label>
-        <div class="tally" id="tally" style="margin-top:12px"></div>
-        <p class="note" id="story">Press "Hold one election" to see who wins.</p>
+        <p class="note" id="world-note"></p>
       </section>
 
-      <section class="card run" aria-labelledby="h-many">
-        <p class="eyebrow">Many elections</p>
-        <h2 id="h-many">How often does the better candidate win?</h2>
-        <div class="big" id="many"></div>
-        <svg id="runchart" viewBox="0 0 400 170" role="img" aria-label="Share of elections the better candidate has won so far, under each system"></svg>
-        <p class="note" id="many-note">Both systems see the same voters and the same news in every election, so the
-          gap between the lines is the weighting and nothing else.</p>
+      <section class="card" id="card-go" aria-labelledby="h-go">
+        <h2 id="h-go"><span class="step">2</span>Hold elections</h2>
+        <div class="actions">
+          <button id="b-one">&#9654; Hold an election<small>Watch the news spread and the votes come in</small></button>
+          <div class="row2">
+            <button id="b-upset" class="ghost">Find an upset<small>Skip to one where the two counts disagree</small></button>
+            <button id="b-many" class="ghost">Run 1,000 elections<small>See which count wins more often</small></button>
+          </div>
+          <p class="status" id="status" role="status"></p>
+        </div>
+      </section>
+
+      <section class="card" id="card-res" aria-labelledby="h-res">
+        <h2 id="h-res"><span class="step">3</span>Who won?</h2>
+        <div class="result" id="result"></div>
+        <p class="why" id="why"></p>
       </section>
     </div>
   </div>
 
-  <section class="card controls" aria-labelledby="h-ctl">
-    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; align-items:center">
-      <h2 id="h-ctl" style="margin:0">Settings</h2>
-      <div class="presets" aria-label="Presets">
-        <button class="ghost" data-preset="few">Educated share a few national outlets</button>
-        <button class="ghost" data-preset="wide">Educated read widely</button>
-        <button class="ghost" data-preset="banks">Family vote banks</button>
-        <button class="ghost" data-preset="money">Vote buying</button>
-        <button class="ghost" data-preset="muscle">Cheap intimidation</button>
-      </div>
-    </div>
-
-    <details open>
-      <summary>Electorate and the rule</summary>
-      <div class="grid2">
-        <label for="n"><span class="row">Voters in this constituency <span class="v" id="n-v"></span></span>
-          <input id="n" type="range" min="101" max="5001" step="100" value="1001"></label>
-        <label for="f"><span class="row">Share who are educated <span class="v" id="f-v"></span></span>
-          <input id="f" type="range" min="0.05" max="0.6" step="0.01" value="0.25"></label>
-        <label for="m"><span class="row">An educated vote counts <span class="v" id="m-v"></span></span>
-          <input id="m" type="range" min="1" max="10" step="0.5" value="5">
-          <span class="hint">the weighted system; the other system always counts every vote once</span></label>
-      </div>
-    </details>
-
-    <details open>
-      <summary>Judgement</summary>
-      <div class="grid2">
-        <label for="q"><span class="row">How much better the better candidate is <span class="v" id="q-v"></span></span>
-          <input id="q" type="range" min="0.05" max="1.5" step="0.05" value="0.3"></label>
-        <label for="se"><span class="row">Personal error, educated <span class="v" id="se-v"></span></span>
-          <input id="se" type="range" min="0.2" max="3" step="0.1" value="0.8"></label>
-        <label for="su"><span class="row">Personal error, everyone else <span class="v" id="su-v"></span></span>
-          <input id="su" type="range" min="0.2" max="3" step="0.1" value="2"></label>
-      </div>
-    </details>
-
-    <details open>
-      <summary>News sources (where shared mistakes come from)</summary>
-      <div class="grid2">
-        <label for="me"><span class="row">National outlets the educated choose from <span class="v" id="me-v"></span></span>
-          <input id="me" type="range" min="1" max="40" step="1" value="3">
-          <span class="hint">each educated voter follows up to three of them</span></label>
-        <label for="mu"><span class="row">Local sources everyone else hears <span class="v" id="mu-v"></span></span>
-          <input id="mu" type="range" min="1" max="60" step="1" value="30">
-          <span class="hint">a village leader, a local channel, a broker; one each</span></label>
-        <label for="bn"><span class="row">How biased each national outlet can be <span class="v" id="bn-v"></span></span>
-          <input id="bn" type="range" min="0" max="2" step="0.05" value="1"></label>
-        <label for="bl"><span class="row">How biased each local source can be <span class="v" id="bl-v"></span></span>
-          <input id="bl" type="range" min="0" max="2" step="0.05" value="1"></label>
-      </div>
-    </details>
-
-    <details>
-      <summary>Parties and loyalty</summary>
-      <div class="grid2">
-        <label for="pl"><span class="row">Lantern's family vote bank <span class="v" id="pl-v"></span></span>
-          <input id="pl" type="range" min="0" max="0.45" step="0.01" value="0"></label>
-        <label for="pk"><span class="row">Kite's family vote bank <span class="v" id="pk-v"></span></span>
-          <input id="pk" type="range" min="0" max="0.45" step="0.01" value="0"></label>
-        <label for="lam"><span class="row">How locked in bank members are <span class="v" id="lam-v"></span></span>
-          <input id="lam" type="range" min="0" max="3" step="0.1" value="1.5"></label>
-        <label for="mix">Educated voters and the vote banks
-          <select id="mix"><option value="same">join them like everyone else</option>
-            <option value="swing">are mostly swing voters</option>
-            <option value="kite">lean toward Kite's bank</option></select></label>
-        <label for="pi"><span class="row">Lantern is the better candidate in <span class="v" id="pi-v"></span></span>
-          <input id="pi" type="range" min="0" max="1" step="0.05" value="0.5">
-          <span class="hint">50% means neither party is reliably better</span></label>
-        <label for="mu-e"><span class="row">Educated always lean toward Lantern by <span class="v" id="mu-e-v"></span></span>
-          <input id="mu-e" type="range" min="0" max="1" step="0.05" value="0"></label>
-      </div>
-    </details>
-
-    <details>
-      <summary>Money and muscle</summary>
-      <div class="grid2">
-        <label for="bud"><span class="row">The briber's budget <span class="v" id="bud-v"></span></span>
-          <input id="bud" type="range" min="0" max="3" step="0.05" value="0">
-          <span class="hint">the briber backs whichever candidate is worse, and knows every voter's price</span></label>
-        <label for="r"><span class="row">An educated voter's price, compared with others <span class="v" id="r-v"></span></span>
-          <input id="r" type="range" min="0.5" max="6" step="0.25" value="3">
-          <span class="hint">others take Tk 1,000 on average, the floor reported for 2024</span></label>
-        <label for="k"><span class="row">Cost of intimidating one voter <span class="v" id="k-v"></span></span>
-          <input id="k" type="range" min="250" max="8000" step="250" value="8000">
-          <span class="hint">the same for everyone; at the right end the briber never uses it</span></label>
-      </div>
-    </details>
+  <section class="card run" aria-labelledby="h-many">
+    <h2 id="h-many"><span class="step">4</span>Over 1,000 elections, how often did the good candidate win?</h2>
+    <div class="score" id="score"></div>
+    <svg id="runchart" viewBox="0 0 600 170" role="img" aria-label="Share of elections the good candidate has won so far, under each way of counting"></svg>
+    <p class="note" id="many-note">Press "Run 1,000 elections". Both counts use exactly the same votes, so any gap between them comes from the extra weight and nothing else.</p>
   </section>
 
+  <details class="card more">
+    <summary>More settings</summary>
+    <div class="ctlhead">
+      <p class="note" style="margin:0">Change anything, then hold elections again.</p>
+      <button id="b-reset" class="ghost">Reset</button>
+    </div>
+    <div class="sliders">
+      <label for="me"><span class="row">News channels educated people watch <span class="v" id="me-v"></span></span>
+        <input id="me" type="range" min="1" max="200" step="1" value="3">
+        <span class="hint">Few channels: if those channels get it wrong, the educated all get it wrong together.</span></label>
+      <label for="m"><span class="row">An educated vote counts <span class="v" id="m-v"></span></span>
+        <input id="m" type="range" min="1" max="10" step="1" value="5">
+        <span class="hint">In the second count. The first count is always one person, one vote.</span></label>
+      <label for="q"><span class="row">How obvious is the good candidate? <span class="v" id="q-v"></span></span>
+        <input id="q" type="range" min="0.05" max="0.6" step="0.05" value="0.15">
+        <span class="hint">More obvious means fewer voters get fooled.</span></label>
+      <label for="bud"><span class="row">Money to buy votes <span class="v" id="bud-v"></span></span>
+        <input id="bud" type="range" min="0" max="0.2" step="0.01" value="0">
+        <span class="hint">A briber backs the bad candidate and buys the cheapest votes it needs (about Tk 1,000 each, the going rate reported in 2024). Educated votes cost 3× more, but in count 2 each one is worth more too.</span></label>
+    </div>
+  </details>
+
   <footer>
-    This is a model, not a forecast: the settings are assumptions, and the two that matter most (how much educated
-    voters share their mistakes, and what a vote really costs) have not been measured for Bangladesh. Lantern and Kite
-    are fictional and stand for no real party.
+    A toy model, not a forecast. Everyone has the same personal judgement noise except that educated voters are a bit
+    sharper; what differs is which news they hear. Africa is not included: Afrobarometer did not ask the factual
+    questions needed to measure shared mistakes, which is the one number that decides the result. Code and the check against the research model:
+    <a href="https://github.com/yaqzans/who-should-count-more" style="color:inherit">github.com/yaqzans/who-should-count-more</a>.
   </footer>
 </div>
 
@@ -271,11 +216,35 @@ footer a { color: inherit; }
 (function () {
   "use strict";
   const $ = (id) => document.getElementById(id);
-  const IDS = ["n", "f", "m", "q", "se", "su", "me", "mu", "bn", "bl", "pl", "pk", "lam", "mix", "pi", "mu-e", "bud", "r", "k"];
+  const IDS = ["me", "m", "q", "bud"];
+  // everything the sliders do not touch (the full model has more knobs; see the repo)
+  const FIXED = { n: 1001, f: 0.25, se: 0.8, su: 2, mu: 30, bn: 1, bl: 1, pl: 0, pk: 0, lam: 1.5,
+                  mix: "same", pi: 1, "mu-e": 0, r: 3, k: 8000 };
+  // The worlds. The three countries come from the World Values Survey wave 7 (the research
+  // repo's wvs.log and knowledge.log): f is the share with high education, and source bias is
+  // set so the model's share of shared error matches the mean regional ICC of answering three
+  // factual questions wrong, educated (iE) and the rest (iU):
+  //   bn^2/3 / (bn^2/3 + 0.8^2) = iE,   bl^2 / (bl^2 + 2^2) = iU.
+  //   Bangladesh 2018: 103/1199 high, iE 0.131, iU 0.054 -> bn 0.54, bl 0.48
+  //   India 2023:      391/1689 high, iE 0.111, iU 0.124 -> bn 0.49, bl 0.75
+  //   Pakistan 2018:   207/1992 high, iE 0.024, iU 0.028 -> bn 0.22, bl 0.34
+  const ROUGH = " Rough: these were trivia questions, not judgements of candidates, and the surveys cannot see how many channels people share, so the channel count stays at 3.";
+  const WORLDS = {
+    few:  { me: 3, f: 0.25, bn: 1, bl: 1,
+            note: "A quarter of voters are educated and they all get their news from the same 3 national channels." },
+    wide: { me: 100, f: 0.25, bn: 1, bl: 1,
+            note: "The same voters, but each educated person follows 3 of 100 different channels, so their mistakes rarely line up." },
+    bd:   { me: 3, f: 0.09, bn: 0.54, bl: 0.48,
+            note: "Bangladesh 2018: 9% of adults have higher education. People in the same region make the same mistake on factual questions more often if they are educated (13% of the variation) than if not (5%)." + ROUGH },
+    in:   { me: 3, f: 0.23, bn: 0.49, bl: 0.75,
+            note: "India 2023: 23% have higher education. Shared mistakes are about equal: 11% of the variation for the educated, 12% for everyone else." + ROUGH },
+    pk:   { me: 3, f: 0.10, bn: 0.22, bl: 0.34,
+            note: "Pakistan 2018: 10% have higher education. Very little shared mistake in either group (2 to 3% of the variation)." + ROUGH },
+  };
+  let world = "few";
   const DEFAULTS = {};
   IDS.forEach((id) => { DEFAULTS[id] = $(id).value; });
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduceMotion) $("anim").checked = false;
 
   // ------------------------------------------------------------- randomness
   function rng(seed) {                         // mulberry32, seeded so a run can be repeated
@@ -298,8 +267,8 @@ footer a { color: inherit; }
   }
 
   function params() {
-    const p = {};
-    IDS.forEach((id) => { p[id] = id === "mix" ? $(id).value : +$(id).value; });
+    const w = WORLDS[world], p = Object.assign({}, FIXED, { f: w.f, bn: w.bn, bl: w.bl });
+    IDS.forEach((id) => { p[id] = +$(id).value; });
     p.kOff = p.k >= 8000;
     return p;
   }
@@ -379,28 +348,30 @@ footer a { color: inherit; }
 
   // ------------------------------------------------------------- drawing
   const canvas = $("net"), ctx = canvas.getContext("2d");
-  let layout = null, seed = 20260212, pop = null, last = null, focus = -1, anim = null;
+  let layout = null, seed = 20260212, pop = null, last = null, anim = null, busy = false, electionCount = 0, skip = null;
+  // a hidden tab pauses animation frames; jump to the result instead of freezing mid-count
+  document.addEventListener("visibilitychange", () => { if (document.hidden && skip) { cancelAnimationFrame(anim); const f = skip; skip = null; f(); } });
   const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
   function makeLayout(p) {
-    const W = canvas.clientWidth || 700, H = Math.max(360, Math.min(620, W * 0.8));
+    const W = canvas.clientWidth || 700, H = Math.max(340, Math.min(560, W * 0.72));
     canvas.style.height = H + "px";
     const dpr = window.devicePixelRatio || 1;
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const R = rng(seed + 7), hubs = [], topY = 30, band = H * 0.34;
-    for (let j = 0; j < p.me; j++) hubs.push({ x: 24 + (W - 48) * (p.me === 1 ? 0.5 : j / (p.me - 1)), y: topY, r: 8 });
+    const R = rng(seed + 7), hubs = [], topY = 34, band = H * 0.34;
+    for (let j = 0; j < p.me; j++) hubs.push({ x: 12 + (W - 24) * (j + 0.5) / p.me, y: topY, r: p.me > 40 ? 5 : 9 });
     const cols = Math.max(1, Math.round(Math.sqrt(p.mu * W / (H * 0.6)))), rows = Math.ceil(p.mu / cols);
     for (let j = 0; j < p.mu; j++) {
       const c = j % cols, r = Math.floor(j / cols);
-      hubs.push({ x: 28 + (W - 56) * (cols === 1 ? 0.5 : c / (cols - 1)), y: band + 38 + (H - band - 58) * (rows === 1 ? 0.5 : r / (rows - 1)), r: 5.5 });
+      hubs.push({ x: 28 + (W - 56) * (cols === 1 ? 0.5 : c / (cols - 1)), y: band + 40 + (H - band - 60) * (rows === 1 ? 0.5 : r / (rows - 1)), r: 6 });
     }
-    const cellR = Math.min((W - 56) / Math.max(cols, 1), (H - band - 58) / Math.max(rows, 1)) * 0.48;
+    const cellR = Math.min((W - 56) / Math.max(cols, 1), (H - band - 60) / Math.max(rows, 1)) * 0.48;
     const pts = [];
     for (let i = 0; i < pop.n; i++) {
       const ss = pop.src[i];
       if (pop.edu[i]) {
-        let x = 0; ss.forEach((j) => { x += hubs[j].x; }); x /= ss.length;
-        pts.push({ x: Math.min(W - 6, Math.max(6, x + (R() - 0.5) * (W / Math.max(p.me, 2)) * 0.75)), y: topY + 20 + R() * (band - topY - 26), d: 0 });
+        const x = hubs[ss[Math.floor(R() * ss.length)]].x;     // under one of their channels
+        pts.push({ x: Math.min(W - 6, Math.max(6, x + (R() - 0.5) * Math.min(W / Math.max(p.me, 2), 260) * 0.95)), y: topY + 22 + R() * (band - topY - 28), d: 0 });
       } else {
         const h = hubs[ss[0]], a = R() * 2 * Math.PI, rr = Math.sqrt(R()) * cellR;
         pts.push({ x: h.x + Math.cos(a) * rr, y: h.y + Math.sin(a) * rr, d: 0 });
@@ -423,219 +394,204 @@ footer a { color: inherit; }
     return "rgb(" + a.map((v, k) => Math.round(v + (b[k] - v) * t)).join(",") + ")";
   }
 
-  // phase: 0..1 sources light up, 1..2 votes spread, 2..3 bribes flip
+  // phase: 0..1 sources light up, 1..2 votes spread, 2..3 bought voters flip
   function draw(p, phase) {
     if (!layout) return;
     const { W, H, band, hubs, pts } = layout;
-    const C = { ink: css("--ink"), muted: css("--muted"), rule: css("--rule"), lantern: css("--lantern"), kite: css("--kite"), hub: css("--hub"), sheet: css("--sheet"), faint: css("--faint") };
+    const C = { ink: css("--ink"), muted: css("--muted"), rule: css("--rule"), good: css("--good"), bad: css("--bad"), hub: css("--hub"), sheet: css("--sheet"), faint: css("--faint") };
     const ph = phase === undefined ? 3 : phase;
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, W, H);
-    ctx.font = "11px " + css("--mono"); ctx.fillStyle = C.muted;
-    ctx.fillText("national outlets (the educated)", 8, 13);
-    ctx.fillText("local sources (everyone else)", 8, band + 6);
+    ctx.font = "600 12px " + css("--body"); ctx.fillStyle = C.muted;
+    ctx.fillText(`EDUCATED (${Math.round(p.f * 100)}% of voters): ${W < 560 ? "" : "they watch "}${p.me} national channel${p.me > 1 ? "s" : ""}`, 8, 14);
+    ctx.fillText(W < 560 ? "EVERYONE ELSE: one local source each" : "EVERYONE ELSE: each hears one local source (a village leader, a local channel)", 8, band + 8);
     ctx.strokeStyle = C.rule; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
     ctx.beginPath(); ctx.moveTo(0, band - 4); ctx.lineTo(W, band - 4); ctx.stroke(); ctx.setLineDash([]);
-    const listening = (i) => focus < 0 || pop.src[i].includes(focus);
-    if (pop.n <= 2001) {
-      ctx.lineWidth = 0.6;
-      for (let pass = 0; pass < 2; pass++) {
-        ctx.beginPath();
-        for (let i = 0; i < pop.n; i++) {
-          if ((pass === 1) !== (focus >= 0 && listening(i))) continue;
-          pop.src[i].forEach((j) => { if (focus < 0 || j === focus) { ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(hubs[j].x, hubs[j].y); } });
-        }
-        ctx.strokeStyle = pass === 1 ? C.ink : C.rule; ctx.globalAlpha = pass === 1 ? 0.35 : 0.35; ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
-    }
+    ctx.lineWidth = 0.6; ctx.beginPath();
+    for (let i = 0; i < pop.n; i++) pop.src[i].forEach((j) => { ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(hubs[j].x, hubs[j].y); });
+    ctx.strokeStyle = C.rule; ctx.globalAlpha = 0.4; ctx.stroke(); ctx.globalAlpha = 1;
     const sys = last ? last.sys[1] : null, bought = new Set(sys && sys.bought ? sys.bought : []);
-    const small = pop.n > 2001 ? 1.6 : pop.n > 1001 ? 2.1 : 2.7;
     const spread = Math.max(0, Math.min(1, ph - 1)), flip = Math.max(0, Math.min(1, ph - 2));
     for (let i = 0; i < pop.n; i++) {
       const pt = pts[i], v = last ? last.vote[i] : 0;
       let col = C.faint;
       if (v) {
         const t = Math.max(0, Math.min(1, (spread - pt.delay) / 0.12));
-        col = t > 0 ? mix(C.faint.length === 7 ? C.faint : "#e3e8e4", v === 1 ? C.lantern : C.kite, t) : C.faint;
-        if (bought.has(i) && flip > 0) col = mix(v === 1 ? C.lantern : C.kite, v === 1 ? C.kite : C.lantern, flip);
+        col = t > 0 ? mix(C.faint, v === 1 ? C.good : C.bad, t) : C.faint;
+        if (bought.has(i) && flip > 0) col = mix(C.good, C.bad, flip);
       }
-      const r = (pop.edu[i] ? small + 1.4 : small) * (bought.has(i) && flip > 0 && flip < 1 ? 1 + 0.8 * Math.sin(Math.PI * flip) : 1);
-      ctx.globalAlpha = listening(i) ? 1 : 0.18;
-      ctx.fillStyle = col;
-      if (pop.bank[i]) ctx.fillRect(pt.x - r, pt.y - r, 2 * r, 2 * r);
-      else { ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI); ctx.fill(); }
-      if (pop.edu[i]) { ctx.strokeStyle = C.ink; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.arc(pt.x, pt.y, r + 0.8, 0, 2 * Math.PI); ctx.stroke(); }
-      if (bought.has(i) && flip >= 1) {
-        ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath();
-        ctx.moveTo(pt.x - r - 1, pt.y - r - 1); ctx.lineTo(pt.x + r + 1, pt.y + r + 1);
-        ctx.moveTo(pt.x + r + 1, pt.y - r - 1); ctx.lineTo(pt.x - r - 1, pt.y + r + 1); ctx.stroke();
-      }
+      const r = (pop.edu[i] ? 3.2 : 2.6) * (bought.has(i) && flip > 0 && flip < 1 ? 1 + 0.8 * Math.sin(Math.PI * flip) : 1);
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI); ctx.fill();
+      if (pop.edu[i]) { ctx.strokeStyle = C.ink; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.arc(pt.x, pt.y, r + 0.7, 0, 2 * Math.PI); ctx.stroke(); }
     }
-    ctx.globalAlpha = 1;
     const light = Math.max(0, Math.min(1, ph));
     hubs.forEach((h, j) => {
       let col = C.hub, rad = h.r;
       if (last && light > 0) {
         const lean = last.b[j], amp = Math.min(1, Math.abs(lean) / 1.5);
-        col = mix("#8a938e", lean > 0 ? C.lantern : C.kite, light * (0.35 + 0.65 * amp));
+        col = mix("#8a938e", lean > 0 ? C.good : C.bad, light * (0.35 + 0.65 * amp));
         rad = h.r * (1 + 0.6 * amp * light);
       }
-      ctx.globalAlpha = focus < 0 || focus === j ? 1 : 0.35;
       ctx.fillStyle = col; ctx.beginPath(); ctx.arc(h.x, h.y, rad, 0, 2 * Math.PI); ctx.fill();
-      ctx.strokeStyle = focus === j ? C.ink : C.sheet; ctx.lineWidth = focus === j ? 2 : 1.5; ctx.stroke();
+      ctx.strokeStyle = C.sheet; ctx.lineWidth = 1.5; ctx.stroke();
     });
-    ctx.globalAlpha = 1;
   }
 
-  function play(p) {
+  function setBusy(on, msg) {
+    busy = on;
+    ["b-one", "b-upset", "b-many", "b-reset"].forEach((id) => { $(id).disabled = on; });
+    document.querySelectorAll("[data-world]").forEach((b) => { b.disabled = on; });
+    IDS.forEach((id) => { $(id).disabled = on; });
+    $("status").textContent = msg || "";
+  }
+
+  function play(p, note) {
     cancelAnimationFrame(anim);
-    if (!$("anim").checked) { draw(p, 3); showElection(p, last, 1); return; }
-    const t0 = performance.now(), dur = [700, 1600, last.sys[1].bought ? 700 : 0];
+    const finish = () => { draw(p, 3); showElection(p, last, 1); setBusy(false, note); };
+    if (reduceMotion || document.hidden) { finish(); return; }
+    skip = finish;
+    setBusy(true, "Counting the votes…");
+    const t0 = performance.now(), dur = [700, 1700, last.sys[1].bought || last.sys[0].bought ? 800 : 0];
+    const end = dur[0] + dur[1] + dur[2];
     const tick = (now) => {
       const t = now - t0;
-      const ph = t < dur[0] ? t / dur[0] : t < dur[0] + dur[1] ? 1 + (t - dur[0]) / dur[1] : dur[2] ? 2 + Math.min(1, (t - dur[0] - dur[1]) / dur[2]) : 3;
+      const ph = t < dur[0] ? t / dur[0] : t < dur[0] + dur[1] ? 1 + (t - dur[0]) / dur[1] : 2 + (dur[2] ? Math.min(1, (t - dur[0] - dur[1]) / dur[2]) : 1);
+      if (t >= end) { skip = null; finish(); return; }
       draw(p, ph);
-      showElection(p, last, Math.max(0, Math.min(1, ph - 1)), ph >= 3 || (ph >= 2 && !dur[2]));
-      if (ph < 3 && !(ph >= 2 && !dur[2])) anim = requestAnimationFrame(tick);
-      else { draw(p, 3); showElection(p, last, 1, true); }
+      showElection(p, last, Math.max(0, Math.min(1, ph - 1)));
+      anim = requestAnimationFrame(tick);
     };
     anim = requestAnimationFrame(tick);
   }
 
   // ------------------------------------------------------------- panels
-  const pct = (x) => (100 * x).toFixed(1) + "%";
-  const lakh = (tk) => "Tk " + (tk / 100000).toFixed(2) + " lakh";
+  const pct = (x) => Math.round(100 * x) + "%";
+  const lakh = (tk) => "Tk " + Math.round(tk).toLocaleString("en-US");
+  const sysName = (p, j) => (j === 0 ? "Count 1: every vote equal" : `Count 2: educated votes count ${p.m}×`);
 
-  // counted: share of the reveal finished (0..1); final: show results and bribes
-  function showElection(p, e, counted, final) {
-    final = final !== false && counted >= 1;
-    const better = e.lanternBetter ? "Lantern" : "Kite", worse = e.lanternBetter ? "Kite" : "Lantern";
-    $("c-lantern").classList.toggle("better", final && e.lanternBetter);
-    $("c-kite").classList.toggle("better", final && !e.lanternBetter);
-    $("q-lantern").textContent = final ? (e.lanternBetter ? "the better candidate" : "the worse candidate") : "quality hidden";
-    $("q-kite").textContent = final ? (e.lanternBetter ? "the worse candidate" : "the better candidate") : "quality hidden";
-    const pts = layout.pts, L = css("--lantern"), K = css("--kite");
-    $("tally").innerHTML = e.sys.map((r, j) => {
-      let lan, all;
-      if (final) {
-        lan = e.lanternBetter ? r.betterShare : 1 - r.betterShare; all = 1;
-      } else {
-        let sl = 0, sk = 0;
+  function showElection(p, e, counted) {
+    const final = counted >= 1, pts = layout.pts, G = css("--good"), B = css("--bad");
+    $("result").innerHTML = e.sys.map((r, j) => {
+      let good, all;
+      if (final) { good = r.betterShare; all = 1; }
+      else {
+        let sg = 0, sb = 0;
         for (let i = 0; i < pop.n; i++) {
           if (pts[i].delay > counted) continue;
           const wi = pop.edu[i] ? r.mult : 1;
-          if (e.vote[i] === 1) sl += wi; else sk += wi;
+          if (e.vote[i] === 1) sg += wi; else sb += wi;
         }
-        all = (sl + sk) / r.total; lan = sl / r.total;
+        all = (sg + sb) / r.total; good = sg / r.total;
       }
-      const kit = all - lan;
-      const name = j === 0 ? "Every vote counts once" : `Educated votes count ${p.m}×`;
-      const badge = final ? `<span class="mark ${r.betterWins ? "ok" : "no"}">${r.betterWins ? "better candidate won" : "worse candidate won"}</span>`
-                          : `<span class="mark">counting ${Math.round(100 * counted)}%</span>`;
-      return `<div class="trow"><div class="lab"><span>${name}</span>${badge}</div>
-        <div class="bar" role="img" aria-label="Lantern ${pct(lan)}, Kite ${pct(kit)}">
-          <div style="width:${100 * lan}%;background:${L}"></div><div style="width:${100 * kit}%;background:${K}"></div><span class="half"></span></div>
-        <div class="lab"><span>Lantern ${pct(lan)}</span><span>Kite ${pct(kit)}</span></div></div>`;
+      const verdict = final ? (r.betterWins ? `<span class="verdict ok">&#10003; Good wins</span>` : `<span class="verdict no">&#10007; Bad wins</span>`)
+                            : `<span class="verdict wait">counting…</span>`;
+      return `<div class="sys"><div class="top"><span class="name">${sysName(p, j)}</span>${verdict}</div>
+        <div class="bar" role="img" aria-label="good ${pct(good)}, bad ${pct(all - good)}">
+          <div style="width:${100 * good}%;background:${G}"></div><div style="width:${100 * (all - good)}%;background:${B}"></div><span class="half"></span></div>
+        <div class="nums"><span>good ${pct(good)}</span><span>needs more than half</span><span>bad ${pct(all - good)}</span></div></div>`;
     }).join("");
-    if (!final) { $("story").textContent = "Counting…"; return; }
-    const lines = [`${better} was the better candidate this time.`];
-    e.sys.forEach((r, j) => {
-      const name = j === 0 ? "With equal votes" : `With educated votes at ${p.m}×`;
-      if (r.bought) lines.push(`${name}, the briber spent ${lakh(r.cost)} to flip ${r.bought.length} voters` +
-        (r.intimidated ? ` (${r.intimidated} of them by intimidation)` : "") + ` and made ${worse} win.`);
-      else if (p.bud > 0 && !r.betterWins) lines.push(`${name}, ${worse} won without any help.`);
-      else if (p.bud > 0) lines.push(`${name}, the briber could not afford to change the result.`);
-    });
-    $("story").textContent = lines.join(" ");
+    $("why").innerHTML = final ? explain(p, e) : "";
+  }
+
+  // one plain sentence on why this election went the way it did
+  function explain(p, e) {
+    let eg = 0, en = 0, ug = 0, un = 0;
+    for (let i = 0; i < pop.n; i++) {
+      if (pop.edu[i]) { en++; if (e.vote[i] === 1) eg++; } else { un++; if (e.vote[i] === 1) ug++; }
+    }
+    let nat = 0; for (let j = 0; j < p.me; j++) nat += e.b[j]; nat /= p.me;
+    // the briber only acts where the good candidate was winning, so a bought count was an honest win
+    const [a, b] = e.sys.map((r) => (r.bought ? true : r.betterWins)), anyBought = e.sys.some((r) => r.bought);
+    const who = `Educated voters picked the good candidate ${pct(eg / en)} of the time, everyone else ${pct(ug / un)}.`;
+    let s;
+    if (a && b) s = "Both counts got it right. Lots of individual mistakes, but they point in random directions and cancel out in a crowd.";
+    else if (a && !b) s = `<b>Weighting backfired.</b> The ${p.me} channel${p.me > 1 ? "s" : ""} the educated watch leaned ${nat < 0 ? "toward the bad candidate" : "only weakly toward the good one"} this time, so many educated voters made <i>the same</i> mistake together. Counting them ${p.m}× turned that shared mistake into a loss.`;
+    else if (!a && b) s = "<b>Weighting saved it.</b> Many local sources leaned toward the bad candidate this time, and the educated, hearing different news, outvoted them.";
+    else s = "Both counts got it wrong: the news most people heard leaned toward the bad candidate.";
+    if (anyBought) s = "<b>Before any money changed hands:</b> " + s;
+    const bribe = !anyBought ? "" : e.sys.map((r, j) => (r.bought
+      ? ` <b>Then in count ${j + 1} the briber spent ${lakh(r.cost)} on ${r.bought.length} votes and flipped it to the bad candidate.</b>`
+      : r.betterWins ? ` In count ${j + 1} the briber could not afford enough votes.` : "")).join("");
+    return `${s} ${who}${bribe}`;
   }
 
   function runChart(series, T) {
-    const svg = $("runchart"), W = 400, H = 170, L = 38, R = 10, Tp = 10, B = 26;
+    const svg = $("runchart"), W = 600, H = 170, L = 38, R = 10, Tp = 10, B = 26;
     const all = series.flat().map((d) => d[1]);
     let lo = Math.min(0.5, ...all), hi = Math.max(...all, 0.6);
-    lo = Math.floor(lo * 20) / 20; hi = Math.min(1, Math.ceil(hi * 20) / 20);
+    lo = Math.floor(lo * 10) / 10; hi = Math.min(1, Math.ceil(hi * 10) / 10);
     const X = (x) => L + (x / T) * (W - L - R), Y = (y) => Tp + (1 - (y - lo) / (hi - lo)) * (H - Tp - B);
-    const muted = "var(--muted)";
     let s = "";
-    for (let v = lo; v <= hi + 1e-9; v += 0.05) {
+    for (let v = lo; v <= hi + 1e-9; v += 0.1) {
       s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--faint)"/>`;
-      s += `<text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="10" fill="${muted}" font-family="var(--mono)">${Math.round(v * 100)}%</text>`;
+      s += `<text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="var(--mono)">${Math.round(v * 100)}%</text>`;
     }
-    [0, T / 2, T].forEach((x) => { s += `<text x="${X(x)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="${muted}" font-family="var(--mono)">${x}</text>`; });
-    s += `<text x="${W - R}" y="${H - 8}" text-anchor="end" font-size="10" fill="${muted}" dx="-26">elections held</text>`;
-    const col = ["var(--equal)", "var(--weighted)"], name = ["equal votes", "weighted"];
+    [0, T / 2, T].forEach((x) => { s += `<text x="${X(x)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--muted)" font-family="var(--mono)">${x}</text>`; });
+    s += `<text x="${(L + W - R) / 2}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--muted)" dx="80">elections held</text>`;
+    const col = ["var(--equal)", "var(--weighted)"], name = ["every vote equal", "educated count more"];
     series.forEach((ser, j) => {
       if (!ser.length) return;
-      s += `<path d="${ser.map((d, k) => (k ? "L" : "M") + X(d[0]).toFixed(1) + "," + Y(d[1]).toFixed(1)).join("")}" fill="none" stroke="${col[j]}" stroke-width="2"/>`;
-      const e = ser[ser.length - 1];
-      s += `<circle cx="${X(e[0])}" cy="${Y(e[1])}" r="3.5" fill="${col[j]}"/>`;
-      s += `<text x="${Math.min(X(e[0]) - 6, W - R - 4)}" y="${Y(e[1]) + (j ? 14 : -7)}" text-anchor="end" font-size="10.5" fill="var(--ink)">${name[j]} ${pct(e[1])}</text>`;
+      s += `<path d="${ser.map((d, k) => (k ? "L" : "M") + X(d[0]).toFixed(1) + "," + Y(d[1]).toFixed(1)).join("")}" fill="none" stroke="${col[j]}" stroke-width="2.5"/>`;
+      const e = ser[ser.length - 1], above = e[1] >= series[1 - j][series[1 - j].length - 1][1];
+      s += `<circle cx="${X(e[0])}" cy="${Y(e[1])}" r="4" fill="${col[j]}"/>`;
+      s += `<text x="${Math.min(X(e[0]) - 8, W - R - 4)}" y="${Y(e[1]) + (above ? -8 : 15)}" text-anchor="end" font-size="11" font-weight="600" fill="${col[j]}">${name[j]} ${pct(e[1])}</text>`;
     });
     svg.innerHTML = s;
   }
 
   function runMany(p, T, onStep, done) {
     const pp = population(p, seed), R = rng(seed * 31 + 1);
-    let k = 0; const wins = [0, 0], bribed = [0, 0], series = [[], []];
+    let k = 0; const wins = [0, 0], series = [[], []];
     const step = () => {
-      const end = Math.min(T, k + 25);
+      const end = Math.min(T, k + 20);
       for (; k < end; k++) {
         const e = election(p, pp, R);
-        e.sys.forEach((r, j) => { wins[j] += r.betterWins ? 1 : 0; bribed[j] += r.bought ? 1 : 0; });
+        e.sys.forEach((r, j) => { wins[j] += r.betterWins ? 1 : 0; });
       }
       series[0].push([k, wins[0] / k]); series[1].push([k, wins[1] / k]);
       onStep(series, k);
-      if (k < T) setTimeout(step, 0); else done({ T, wins, bribed });
+      if (k < T) setTimeout(step, 0); else done({ T, wins });
     };
     step();
   }
 
   function showMany(p, res) {
-    const se = (x) => Math.sqrt(x * (1 - x) / res.T);
-    $("many").innerHTML = res.wins.map((w, j) => {
-      const a = w / res.T, name = j === 0 ? "every vote counts once" : `educated votes count ${p.m}×`;
-      const extra = p.bud > 0 ? `<small>bribed result in ${pct(res.bribed[j] / res.T)}</small>` : "";
-      return `<div class="stat" style="border-left-color:${j ? "var(--weighted)" : "var(--equal)"}"><span>${name}</span><b>${pct(a)}</b><small>± ${pct(se(a))}</small>${extra}</div>`;
-    }).join("");
-    const d = (res.wins[1] - res.wins[0]) / res.T;
-    $("many-note").textContent = Math.abs(d) < 0.01
-      ? `Out of ${res.T.toLocaleString("en-US")} elections the two systems did about equally well.`
-      : `Out of ${res.T.toLocaleString("en-US")} elections, weighting educated votes ${d > 0 ? "helped" : "hurt"}: the better candidate won ${pct(Math.abs(d))} ${d > 0 ? "more" : "less"} often.`;
+    $("score").innerHTML = res.wins.map((w, j) => `<div class="stat" style="border-left-color:${j ? "var(--weighted)" : "var(--equal)"}">
+      <span>${sysName(p, j)}</span><b>${w.toLocaleString("en-US")}</b><span>good candidate won, out of ${res.T.toLocaleString("en-US")}</span></div>`).join("");
+    const d = res.wins[1] - res.wins[0];
+    $("many-note").innerHTML = Math.abs(d) < 15
+      ? `<b>About a tie</b> (${Math.abs(d)} elections apart). Here the educated hear enough different news that their mistakes do not pile up, so the extra weight neither helps nor hurts much.`
+      : d > 0
+        ? `<b>Counting educated votes more helped</b>: the good candidate won ${d} more times out of ${res.T.toLocaleString("en-US")}. The educated are sharper one by one, and reading different channels they are rarely wrong together, so giving them more say pays off.`
+        : `<b>Counting educated votes more hurt</b>: the good candidate lost ${-d} more times out of ${res.T.toLocaleString("en-US")}. ${p.me <= 10 ? 'The educated are sharper one by one, but they share a few channels, so they are wrong together. Try "Read widely" at the top.' : "Even this many channels was not enough to make their mistakes independent."}`;
   }
 
-  // ------------------------------------------------------------- interaction
+  // ------------------------------------------------------------- hover
   function nearest(mx, my) {
     let best = -1, bd = 64;
     layout.pts.forEach((pt, i) => { const d = (pt.x - mx) ** 2 + (pt.y - my) ** 2; if (d < bd) { bd = d; best = i; } });
     return best;
   }
   function hubAt(mx, my) {
-    let best = -1, bd = 144;
+    let best = -1, bd = 196;
     layout.hubs.forEach((h, j) => { const d = (h.x - mx) ** 2 + (h.y - my) ** 2; if (d < bd) { bd = d; best = j; } });
     return best;
-  }
-  function describeHub(p, j) {
-    const listeners = pop.src.filter((s) => s.includes(j)).length;
-    const kind = j < p.me ? `National outlet ${j + 1}` : `Local source ${j - p.me + 1}`;
-    let lean = "";
-    if (last) { const b = last.b[j]; lean = `<br>This election it leans ${b > 0 ? "Lantern" : "Kite"} by ${Math.abs(b).toFixed(2)}.`; }
-    return `<b>${kind}</b><br>${listeners} voters listen to it.${lean}`;
   }
   canvas.addEventListener("mousemove", (ev) => {
     if (!layout) return;
     const b = canvas.getBoundingClientRect(), mx = ev.clientX - b.left, my = ev.clientY - b.top;
     const p = params(), h = hubAt(mx, my), tip = $("tip");
     let html = "";
-    if (h >= 0) html = describeHub(p, h);
-    else {
+    if (h >= 0) {
+      const n = pop.src.filter((s) => s.includes(h)).length;
+      const lean = last ? `<br>This election it pushed ${last.b[h] > 0 ? "the good" : "the bad"} candidate.` : "";
+      html = `<b>${h < p.me ? "National channel" : "Local source"}</b><br>${n} voters listen to it.${lean}`;
+    } else {
       const i = nearest(mx, my);
       if (i >= 0) {
-        const s = pop.src[i].map((j) => (j < p.me ? `national outlet ${j + 1}` : `local source ${j - p.me + 1}`)).join(", ");
-        const bank = pop.bank[i] === 1 ? "locked into Lantern's vote bank" : pop.bank[i] === -1 ? "locked into Kite's vote bank" : "a swing voter";
-        const v = last ? (last.vote[i] === 1 ? "voted Lantern" : "voted Kite") : "has not voted yet";
-        const bought = last && last.sys[1].bought && last.sys[1].bought.includes(i) ? (pop.price[i] === pop.intimCost ? ", then was intimidated" : ", then was bought") : "";
-        html = `<b>${pop.edu[i] ? "Educated" : "Not educated"} voter</b> (counts ${pop.edu[i] ? p.m : 1}× in the weighted system)<br>listens to ${s}<br>${bank}<br>${v}${bought}<br>price: Tk ${Math.round(pop.price[i]).toLocaleString("en-US")}`;
+        const v = last ? (last.vote[i] === 1 ? "voted good" : "voted bad") : "has not voted yet";
+        const bought = last && last.sys[1].bought && last.sys[1].bought.includes(i) ? ", then sold their vote" : "";
+        html = `<b>${pop.edu[i] ? "Educated voter" : "Voter"}</b>, counts ${pop.edu[i] ? p.m : 1}× in count 2<br>${v}${bought}`;
       }
     }
     if (!html) { tip.hidden = true; return; }
@@ -644,74 +600,79 @@ footer a { color: inherit; }
     tip.style.top = Math.max(0, my - tip.offsetHeight - 10) + "px";
   });
   canvas.addEventListener("mouseleave", () => { $("tip").hidden = true; });
-  canvas.addEventListener("click", (ev) => {
-    const b = canvas.getBoundingClientRect(), h = hubAt(ev.clientX - b.left, ev.clientY - b.top);
-    focus = h === focus || h < 0 ? -1 : h;
-    draw(params());
-  });
 
   // ------------------------------------------------------------- wiring
   function label() {
     const p = params();
-    $("n-v").textContent = p.n.toLocaleString("en-US");
-    $("f-v").textContent = Math.round(p.f * 100) + "%";
+    $("me-v").textContent = p.me;
     $("m-v").textContent = p.m + "×";
-    ["q", "se", "su", "bn", "bl", "lam", "mu-e"].forEach((id) => { $(id + "-v").textContent = (+$(id).value).toFixed(2); });
-    $("me-v").textContent = p.me; $("mu-v").textContent = p.mu;
-    $("pl-v").textContent = Math.round(p.pl * 100) + "%"; $("pk-v").textContent = Math.round(p.pk * 100) + "%";
-    $("pi-v").textContent = Math.round(p.pi * 100) + "%";
-    $("bud-v").textContent = p.bud > 0 ? "Tk " + p.bud.toFixed(2) + " lakh" : "none";
-    $("r-v").textContent = p.r.toFixed(2) + "×";
-    $("k-v").textContent = p.kOff ? "never used" : "Tk " + p.k.toLocaleString("en-US");
+    $("q-v").textContent = p.q < 0.15 ? "barely" : p.q < 0.3 ? "a bit" : p.q < 0.45 ? "fairly" : "very";
+    $("bud-v").textContent = p.bud > 0 ? "Tk " + Math.round(p.bud * 100000).toLocaleString("en-US") : "none";
+    document.querySelectorAll("[data-world]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.world === world)));
+    $("world-note").textContent = WORLDS[world].note + (p.me !== WORLDS[world].me ? ` You changed the channel count to ${p.me}.` : "");
   }
 
-  function rebuild() {
+  function rebuild(msg) {
     cancelAnimationFrame(anim);
     label();
     const p = params();
     pop = population(p, seed);
     layout = makeLayout(p);
-    last = null; focus = -1;
-    $("tally").innerHTML = ""; $("story").textContent = "Press “Hold one election” to see who wins.";
-    ["c-lantern", "c-kite"].forEach((id) => $(id).classList.remove("better"));
-    $("q-lantern").textContent = "quality hidden"; $("q-kite").textContent = "quality hidden";
+    last = null;
+    $("result").innerHTML = '<p class="note" style="margin:0">No election yet. Press "Hold an election".</p>';
+    $("why").innerHTML = "";
+    $("score").innerHTML = "";
+    $("many-note").textContent = 'Press "Run 1,000 elections". Both counts use exactly the same votes, so any gap between them comes from the extra weight and nothing else.';
+    runChart([[], []], 1000);
+    $("status").textContent = msg || "";
     draw(p);
   }
 
-  let electionCount = 0;
   $("b-one").addEventListener("click", () => {
+    if (busy) return;
     const p = params();
     last = election(p, pop, rng(seed * 97 + (++electionCount)));
-    play(p);
+    play(p, `Election ${electionCount} done. Hold another, or try the other buttons.`);
+  });
+  $("b-upset").addEventListener("click", () => {
+    if (busy) return;
+    const p = params();
+    for (let tries = 1; tries <= 3000; tries++) {
+      const e = election(p, pop, rng(seed * 97 + (++electionCount)));
+      if (e.sys[0].betterWins !== e.sys[1].betterWins) {
+        last = e;
+        play(p, `Found one ${tries === 1 ? "on the very first try" : "after " + tries + " elections"}: the two counts disagreed.`);
+        return;
+      }
+    }
+    $("status").textContent = "Tried 3,000 elections and the two counts never disagreed with these settings.";
   });
   $("b-many").addEventListener("click", () => {
-    const p = params(), btn = $("b-many");
-    btn.disabled = true; btn.textContent = "Counting…";
-    runMany(p, 1000, (series) => runChart(series, 1000),
-      (res) => { showMany(p, res); btn.disabled = false; btn.textContent = "Hold 1,000 elections"; });
+    if (busy) return;
+    const p = params();
+    setBusy(true, "Running 1,000 elections…");
+    $("h-many").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    runMany(p, 1000, (series, k) => { runChart(series, 1000); $("status").textContent = `Running elections: ${k} of 1,000…`; },
+      (res) => { showMany(p, res); setBusy(false, "1,000 elections done. Result below."); });
   });
-  $("b-pop").addEventListener("click", () => { seed += 1; rebuild(); });
-
-  const PRESETS = {
-    few:    { me: 3, mu: 30 },
-    wide:   { me: 40, mu: 30 },
-    banks:  { me: 10, mu: 30, pl: 0.25, pk: 0.4, lam: 1.5, mix: "swing", pi: 0 },
-    money:  { me: 10, mu: 30, bud: 0.5, r: 3 },
-    muscle: { me: 10, mu: 30, bud: 0.5, r: 3, k: 1000 },
-  };
-  document.querySelectorAll("[data-preset]").forEach((btn) => btn.addEventListener("click", () => {
-    IDS.forEach((id) => { $(id).value = DEFAULTS[id]; });
-    Object.entries(PRESETS[btn.dataset.preset]).forEach(([id, v]) => { $(id).value = v; });
-    rebuild();
+  document.querySelectorAll("[data-world]").forEach((btn) => btn.addEventListener("click", () => {
+    if (busy) return;
+    world = btn.dataset.world;
+    $("me").value = WORLDS[world].me;
+    rebuild("World changed. Hold an election or run 1,000.");
   }));
-  IDS.forEach((id) => $(id).addEventListener("input", rebuild));
+  $("b-reset").addEventListener("click", () => {
+    if (busy) return;
+    IDS.forEach((id) => { $(id).value = DEFAULTS[id]; });
+    $("me").value = WORLDS[world].me;
+    rebuild("Settings reset.");
+  });
+  IDS.forEach((id) => $(id).addEventListener("input", () => rebuild("Settings changed. Hold an election or run 1,000 to see the effect.")));
   let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { layout = makeLayout(params()); draw(params()); }, 150); });
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => draw(params()));
 
   window.__ballot = { population, election, rng, params };     // used to check the page against the Python model
   rebuild();
-  $("many").innerHTML = '<p class="note" style="margin:0">Press “Hold 1,000 elections” to watch both systems settle.</p>';
-  runChart([[], []], 1000);
 })();
 </script>
 
