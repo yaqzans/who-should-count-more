@@ -88,6 +88,8 @@ button:disabled { opacity: 0.5; cursor: wait; }
 .nethead { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
 .nethead h2 { margin: 0; }
 .views { display: flex; gap: 0; }
+.views { align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.views .vlabel { font-size: 0.72rem; color: var(--muted); margin-right: 8px; }
 .views button { width: auto; padding: 5px 10px; font-size: 0.75rem; }
 .views button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 canvas { cursor: pointer; }
@@ -141,9 +143,10 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     <section class="card" id="card-net" aria-labelledby="h-net">
       <div class="nethead">
         <h2 id="h-net">The voters</h2>
-        <div class="views" role="group" aria-label="Which count the picture shows">
-          <button class="ghost" data-view="0" aria-pressed="true">Count 1</button>
-          <button class="ghost" data-view="1" aria-pressed="false">Count 2</button>
+        <div class="views" role="group" aria-label="Whose sold votes the picture marks">
+          <span class="vlabel">Mark sold votes under</span>
+          <button class="ghost" data-view="0" aria-pressed="true">Equal votes</button>
+          <button class="ghost" data-view="1" aria-pressed="false">Educated &#215;5</button>
         </div>
       </div>
       <div class="netbox">
@@ -156,7 +159,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
         <span><i style="border:2px solid var(--ink)"></i>educated (ringed)</span>
         <span><i style="background:var(--muted);border-radius:0"></i>square: loyal to a party</span>
         <span><i style="background:var(--hub);width:14px;height:14px"></i>news source (turns the colour it pushes)</span>
-        <span>&#215; sold their vote (in the count shown)</span>
+        <span>&#215; sold their vote (under the count picked above)</span>
       </div>
       <p class="note">Hover anything for its numbers. Click a news source to see who listens to it.</p>
     </section>
@@ -207,12 +210,14 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
         <div class="result" id="result"></div>
         <div class="why" id="why"></div>
         <details class="howto"><summary>How to read this</summary>
-          <p>Each voter weighs the two candidates. The good one has a small real edge (+0.15 on the slider "how obvious").
-          On top of that, every news source slants by a random amount each election, and everyone who follows it gets
-          the same push: that is how a whole group can be wrong together. Each voter also has their own judgement,
-          which wobbles about &#177;0.8 for the educated and &#177;2 for everyone else. Positive numbers push toward the
-          good candidate, negative toward the bad. Every election is also run with no rigging from the same random
-          numbers, so the page can tell you exactly what the rigging changed.</p>
+          <p>Every election is counted two ways. <b>Equal votes</b>: one person, one vote, like now.
+          <b>Educated &#215;5</b>: an educated person's vote counts as five. Same voters, same ballots, two results.</p>
+          <p>Voters pick by weighing the two candidates. The good one is only slightly better, so other things easily
+          tip people: the news they follow (every source leans a random way each election, even when nobody pays it),
+          their party, and plain misjudgement. A whole village or a whole channel's audience can be pushed the
+          same way at once, and that is what makes a group wrong together.</p>
+          <p>Every election is also replayed with no rigging from the same random draws, so the page can tell you
+          exactly what the rigging changed.</p>
         </details>
       </section>
     </div>
@@ -259,7 +264,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     ["Voters", "f", "Share with higher education", 0.02, 0.6, 0.01, (v) => Math.round(v * 100) + "%",
       "Who counts as educated.", "WVS (country buttons)"],
     ["Counting", "m", "An educated vote counts", 1, 10, 1, (v) => v + "×",
-      "In count 2 only. Count 1 is always one person, one vote.", "the question being tested"],
+      "Only in the educated ×5 count. The equal-votes count is always one person, one vote.", "the question being tested"],
     ["Judgement", "q", "The good candidate's real edge", 0.05, 0.6, 0.05, (v) => "+" + v.toFixed(2),
       "How much better the good candidate really is, on the same scale as everything below.", "assumption"],
     ["Judgement", "se", "Own judgement noise, educated", 0.2, 3, 0.1, (v) => "±" + v.toFixed(1),
@@ -575,7 +580,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
   // ------------------------------------------------------------- panels
   const pct = (x) => Math.round(100 * x) + "%";
   const lakh = (tk) => "Tk " + Math.round(tk).toLocaleString("en-US");
-  const sysName = (p, j) => (j === 0 ? "Count 1: every vote equal" : `Count 2: educated votes count ${p.m}×`);
+  const sysName = (p, j) => (j === 0 ? "Equal votes: one person, one vote" : `Educated ×${p.m}: an educated vote counts ${p.m}`);
 
   function showElection(p, e, counted) {
     const final = counted >= 1, pts = layout.pts, G = css("--good"), B = css("--bad");
@@ -609,6 +614,10 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     return 0.5 * (1 + (x >= 0 ? erf : -erf));
   };
   const sgn = (x) => (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(2);
+  // a slant in words, sized against typical slants (about 0.1 is barely noticeable, above 0.8 is strong)
+  const lean = (x) => { const a = Math.abs(x); return (a < 0.1 ? "barely" : a < 0.35 ? "a little" : a < 0.8 ? "clearly" : "strongly") + " toward the " + (x >= 0 ? "good" : "bad") + " candidate"; };
+  const cname = (p, j) => (j ? `educated ×${p.m}` : "equal votes");
+  const Cname = (p, j) => (j ? `Educated ×${p.m}` : "Equal votes");
   const plural = (n, w) => `${n.toLocaleString("en-US")} ${w}${n === 1 ? "" : "s"}`;
 
   // the cheapest way to flip one count, using the same rule as count(): most weight per taka first
@@ -651,9 +660,9 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
       const wE = j ? p.m : 1, total = wE * E.n + U.n;
       return Math.round(Math.abs(r.betterShare - 0.5) * total);
     });
-    out.push(`<b>The margins.</b> ` + e.sys.map((r, j) => `${j ? "count" : "Count"} ${j + 1} went to the ${r.betterWins ? "good" : "bad"} candidate by ${plural(margin[j], "vote")} of weight`).join("; ") + ". "
+    out.push(`<b>The margins.</b> ` + e.sys.map((r, j) => `${j ? "with" : "With"} ${cname(p, j)} the ${r.betterWins ? "good" : "bad"} candidate won by ${plural(margin[j], "vote")}${j ? " (each educated vote counting " + p.m + ")" : ""}`).join("; ") + ". "
       + (Math.min(...margin) <= 20
-        ? `That is close: about ${plural(Math.max(1, Math.ceil(Math.min(...margin) / 2)), "ordinary voter")} switching sides would have flipped count ${margin.indexOf(Math.min(...margin)) + 1}.`
+        ? `That is close: about ${plural(Math.max(1, Math.ceil(Math.min(...margin) / 2)), "ordinary voter")} switching sides would have flipped the result with ${cname(p, margin.indexOf(Math.min(...margin)))}.`
         : "Neither was close."));
 
     // the educated
@@ -661,9 +670,10 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     const noNewsE = Phi(q / p.se), withE = Phi((q + E.pushH) / p.se);
     let sE = `<b>The educated</b> (${E.n}): `;
     sE += p.me <= 12
-      ? `their ${p.me} national channels leaned ${Array.from({ length: p.me }, (_, j) => sgn(h.b[j])).join(", ")}. Channel ${top + 1} pushed hardest (${sgn(h.b[top])}, followed by ${heard[top]} of them). `
-      : `they spread over ${p.me} channels, so no single one dominates; the strongest (${sgn(h.b[top])}) reached ${heard[top]} of them. `;
-    sE += `On average that pushed them ${sgn(E.pushH)} against the good candidate's real edge of +${q.toFixed(2)}. `
+      ? `of their ${p.me} national channels, ${Array.from({ length: p.me }, (_, j) => `channel ${j + 1} leaned ${lean(h.b[j])}`).join(", ")}. Channel ${top + 1} pushed hardest, and ${heard[top] === E.n ? `all ${E.n}` : heard[top]} of them follow it. `
+      : `they spread over ${p.me} channels, so no single one dominates; the strongest leaned ${lean(h.b[top])} and reached ${heard[top]} of them. `;
+    sE += `Put together, their news leaned ${lean(E.pushH)}`
+      + (E.pushH < -q ? ", which is more than the good candidate's real advantage. " : E.pushH < 0 ? ", which ate into the good candidate's small real advantage. " : ", on top of the good candidate's small real advantage. ")
       + `With no slant at all about ${pct(noNewsE)} would pick good; with this news, about ${pct(withE)}. ${pct(E.gH / E.n)} actually did`
       + (Math.abs(E.gH / E.n - withE) > 0.05 ? `, ${E.gH / E.n > withE ? "more" : "fewer"} than expected, which is just how ${E.n} individual choices fall` : "")
       + ". " + (withE < 0.5 ? "<b>This time the news turned the educated against the good candidate.</b>"
@@ -676,26 +686,26 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     for (let j = p.me; j < M; j++) { if (h.b[j] < h.b[worst]) worst = j; if (h.b[j] > h.b[best]) best = j; }
     let locBad = 0; for (let j = p.me; j < M; j++) if (h.b[j] < 0) locBad++;
     const noNewsU = Phi(q / p.su), withU = Phi((q + U.pushH) / p.su);
-    out.push(`<b>Everyone else</b> (${U.n}): ${locBad} of ${p.mu} local sources leaned bad. The worst, local source ${worst - p.me + 1} (${sgn(h.b[worst])}), `
-      + `had ${plural(heard[worst], "listener")} and ${badOf[worst]} of them voted bad; the most helpful, local source ${best - p.me + 1} (${sgn(h.b[best])}), lost only ${badOf[best]} of ${heard[best]}. `
-      + `Because each village hears a different source, the pushes mostly cancel (average ${sgn(U.pushH)}). `
-      + `What is left is their own judgement, which is noisy against an edge this small: about ${pct(withU)} expected to pick good, ${pct(U.gH / U.n)} did.`);
+    out.push(`<b>Everyone else</b> (${U.n}): ${locBad} of ${p.mu} local sources leaned toward the bad candidate. The worst, local source ${worst - p.me + 1}, leaned ${lean(h.b[worst])}: `
+      + `${badOf[worst]} of its ${plural(heard[worst], "listener")} voted bad. The most helpful, local source ${best - p.me + 1}, leaned ${lean(h.b[best])}, and only ${badOf[best]} of its ${heard[best]} voted bad. `
+      + `Because each village hears a different source, the pushes mostly cancel: overall they leaned ${lean(U.pushH)}. `
+      + `What is left is their own judgement, which is shaky when the candidates are this close: about ${pct(withU)} expected to pick good, ${pct(U.gH / U.n)} did.`);
 
     // the parties: loyal voters on each side and the swing voters in between
     if (p.bank > 0) {
       const side = (b) => { let n = 0, g = 0, pull = 0, ne = 0; for (let i = 0; i < pop.n; i++) if (pop.bank[i] === b) { n++; ne += pop.edu[i]; pull += pop.lam[i]; if (h.vote[i] === 1) g++; } return { n, g, ne, pull: n ? pull / n : 0 }; };
       const G = side(1), Bd = side(-1), S = side(0);
-      out.push(`<b>The parties.</b> ${G.n} voters are loyal to the good candidate's party and ${Bd.n} to the bad candidate's (average pull ${G.pull.toFixed(2)} and ${Bd.pull.toFixed(2)}, against a real edge of +${q.toFixed(2)}). `
+      out.push(`<b>The parties.</b> ${G.n} voters are loyal to the good candidate's party and ${Bd.n} to the bad candidate's. For a typical loyal voter, party pulls about ${Math.round((G.pull + Bd.pull) / 2 / q)} times harder than the real difference between the candidates. `
         + `Loyal voters still slip sometimes: ${pct(G.g / Math.max(1, G.n))} of the good party's and ${pct(1 - Bd.g / Math.max(1, Bd.n))} of the bad party's voted with their party. `
         + `That leaves ${S.n} swing voters (${S.ne} of them educated), who went ${pct(S.g / Math.max(1, S.n))} good. `
         + (Bd.n > G.n + 30 ? "<b>The bad candidate starts with the bigger bank</b>, so the good one has to win the swing voters by a wide margin."
           : G.n > Bd.n + 30 ? "The good candidate starts with the bigger bank, which is a head start the rigger has to overcome."
           : "The two banks roughly cancel, so the swing voters decide it, and close races are cheap to buy."));
     }
-    if (p["mu-e"] !== 0) out.push(`<b>Standing lean.</b> Every educated voter also carries a fixed push of ${sgn(p["mu-e"])} ${p["mu-e"] > 0 ? "toward the good candidate's side" : "toward the bad candidate's side"}, whatever the news says. It is already in the educated numbers above.`);
+    if (p["mu-e"] !== 0) out.push(`<b>Standing lean.</b> Every educated voter also leans ${lean(p["mu-e"])}, whatever the news says. It is already in the educated numbers above.`);
 
     // the bought news
-    if (p.cap > 0) out.push(`<b>The bought channels</b> added ${sgn(-p.cap)} for every educated voter, taking them from ${pct(E.gH / E.n)} to ${pct(E.gR / E.n)} good: ${plural(E.gH - E.gR, "educated voter")} switched to the bad candidate. Nobody else watches those channels, so everyone else stayed at ${pct(U.gR / U.n)}.`);
+    if (p.cap > 0) out.push(`<b>The bought channels</b> pushed every educated voter ${lean(-p.cap)} on top of that, taking them from ${pct(E.gH / E.n)} to ${pct(E.gR / E.n)} good: ${plural(E.gH - E.gR, "educated voter")} switched to the bad candidate. Nobody else watches those channels, so everyone else stayed at ${pct(U.gR / U.n)}.`);
 
     // the briber, count by count
     if (p.bud > 0) e.sys.forEach((r, j) => {
@@ -706,37 +716,37 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
         const cash = r.bought.length - r.intimidated, nU = r.bought.length - nE;
         const tk = (x) => "Tk " + Math.round(x).toLocaleString("en-US");
         const lo = Math.min(...prices), hi = Math.max(...prices);
-        let s = `<b>The rigger, count ${j + 1}:</b> `;
+        let s = `<b>The rigger, ${cname(p, j)}:</b> `;
         s += cash && r.intimidated ? `bought ${plural(cash, "vote")} and threatened ${plural(r.intimidated, "voter")}, ${lakh(r.cost)} in all`
           : r.intimidated ? `threatened ${plural(r.intimidated, "voter")} at ${tk(p.k)} each, ${lakh(r.cost)} in all`
           : `bought ${plural(cash, "vote")} for ${lakh(r.cost)}` + (lo === hi ? "" : `, paying ${tk(lo)} to ${tk(hi)} each`);
         s += ". " + (nE === r.bought.length ? `All ${nE} were educated.` : nE ? `${nE} were educated and ${nU} came from ${plural(villages, "village")}.` : `None were educated; they came from ${plural(villages, "village")}.`) + " ";
-        if (r.intimidated && j) s += `A threat costs the same for anyone, and here an educated voter counts ${wE}×, so they were the best value: <b>weighting made intimidation cheaper.</b> `;
+        if (r.intimidated && j) s += `A threat costs the same for anyone, and here an educated voter counts ${wE}, so they were the best value: <b>weighting made intimidation cheaper.</b> `;
         else if (r.intimidated) s += "A threat costs the same for anyone, and here every vote counts once, so it simply went for whoever was cheapest. ";
-        else if (j) s += `Cash goes furthest on cheap votes: an educated vote asks ${p.r}× more but counts ${wE}×, so ${p.r < wE ? "educated votes were actually the better deal" : "ordinary votes were still the better deal"}. `;
+        else if (j) s += `Cash goes furthest on cheap votes: an educated vote asks ${p.r}× more but counts ${wE}, so ${p.r < wE ? "educated votes were actually the better deal" : "ordinary votes were still the better deal"}. `;
         else s += `Every vote counts once here, so it bought the cheapest people, and educated ones ask ${p.r}× more. `;
         s += `${lakh(budget - r.cost)} was left over.`;
         out.push(s);
       } else if (h.sys[j].betterWins && !e.sys[j].betterWins) {
-        out.push(`<b>The rigger, count ${j + 1}:</b> paid nobody. The bought news had already turned this count, so the money was not needed.`);
+        out.push(`<b>The rigger, ${cname(p, j)}:</b> paid nobody. The bought news had already turned this result, so the money was not needed.`);
       } else if (!h.sys[j].betterWins) {
-        out.push(`<b>The rigger, count ${j + 1}:</b> paid nobody. The bad candidate was winning this count without help.`);
+        out.push(`<b>The rigger, ${cname(p, j)}:</b> paid nobody. The bad candidate was winning this one without help.`);
       } else if (e.sys[j].betterWins) {
         const f = flipCost(pop, e.vote, wE);
-        out.push(`<b>The rigger, count ${j + 1}:</b> to flip it they needed ${plural(f.need, "vote")} of weight. The cheapest way was ${plural(f.k, "voter")} for ${lakh(f.cost)}, `
-          + `${(f.cost / budget).toFixed(1)}× their budget of ${lakh(budget)}, so they paid nobody.` + (j ? ` Each educated vote here counts ${wE}×, but every cheap vote still counts once.` : ""));
+        out.push(`<b>The rigger, ${cname(p, j)}:</b> to flip it they needed to turn ${plural(f.need, "vote")} (an educated vote counts ${wE}). The cheapest way was ${plural(f.k, "voter")} for ${lakh(f.cost)}, `
+          + `${(f.cost / budget).toFixed(1)}× their budget of ${lakh(budget)}, so they paid nobody.` + (j ? ` Educated votes count ${wE} here, but every cheap vote still counts 1.` : ""));
       }
     });
 
     // why the two honest counts differ
-    if (hw[0] !== hw[1]) out.push(`<b>Why the two honest counts disagree:</b> the educated went ${pct(E.gH / E.n)} good and everyone else ${pct(U.gH / U.n)}. In count 1 the educated are ${pct(E.n / pop.n)} of the say; in count 2 they are ${pct(p.m * E.n / (p.m * E.n + U.n))}, so their result decides more of it.`);
+    if (hw[0] !== hw[1]) out.push(`<b>Why the two ways of counting disagree:</b> the educated went ${pct(E.gH / E.n)} good and everyone else ${pct(U.gH / U.n)}. With equal votes the educated have ${pct(E.n / pop.n)} of the say; with educated ×${p.m} they have ${pct(p.m * E.n / (p.m * E.n + U.n))}, so their result decides more of it.`);
 
     const stolen = [0, 1].filter((j) => hw[j] && !rw[j]);
     let verdict;
     if (!(p.bud > 0 || p.cap > 0)) verdict = hw[0] && hw[1] ? "No rigging, and both counts got it right." : "No rigging. Every wrong result here came from the news slanting by chance and from voters' own mistakes.";
-    else if (!stolen.length) verdict = rw[0] || rw[1] ? "The rigging did not change who won." : "Nothing to steal: the bad candidate was winning both counts anyway.";
-    else if (stolen.length === 2) verdict = "Stolen in both counts.";
-    else verdict = `Stolen in count ${stolen[0] + 1} only` + (hw[1 - stolen[0]] ? "; the other count held." : "; the other count was already lost.");
+    else if (!stolen.length) verdict = rw[0] || rw[1] ? "The rigging did not change who won." : "Nothing to steal: the bad candidate was winning both ways of counting anyway.";
+    else if (stolen.length === 2) verdict = "Stolen both ways of counting.";
+    else verdict = `Stolen with ${cname(p, stolen[0])} only` + (hw[1 - stolen[0]] ? `; with ${cname(p, 1 - stolen[0])} it held.` : `; with ${cname(p, 1 - stolen[0])} the bad candidate was winning anyway.`);
     return `<ul>${out.map((x) => `<li>${x}</li>`).join("")}</ul><p class="verdict-line">${verdict}</p>`;
   }
 
@@ -796,8 +806,8 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
         + (Math.abs(g) < 15 ? "about the same either way." : g < 0 ? "weighting made it harder to steal. " : "weighting made it easier to steal. ");
       const why = [];
       if (Math.abs(g) >= 15) {
-        if (p.bud > 0 && !p.noBuy && g < 0) why.push(`cash goes furthest on cheap votes, and in count 2 those count least`);
-        if (p.bud > 0 && !p.kOff) why.push(`a threat costs the same for anyone, so in count 2 the rigger goes for educated voters, who count ${p.m}×`);
+        if (p.bud > 0 && !p.noBuy && g < 0) why.push(`cash goes furthest on cheap votes, and under educated ×${p.m} those count least`);
+        if (p.bud > 0 && !p.kOff) why.push(`a threat costs the same for anyone, so under educated ×${p.m} the rigger goes for educated voters, who count ${p.m}×`);
         if (p.cap > 0) why.push(`the bought channels are the ones the educated watch, and their votes count ${p.m}×`);
       }
       if (why.length) s += "Why: " + why.join("; ") + ".";
@@ -825,21 +835,20 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     let html = "";
     if (h >= 0) {
       const n = pop.src.filter((s) => s.includes(h)).length;
-      let lean = "";
+      let leanTxt = "";
       if (last) {
         const x = last.b[h], bought = h < p.me && p.cap > 0;
-        lean = `<br>This election: ${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(2)}, ${x >= 0 ? "toward good" : "toward bad"}`
-          + (bought ? ` (${honest.b[h] >= 0 ? "+" : "−"}${Math.abs(honest.b[h]).toFixed(2)} by chance, −${p.cap.toFixed(2)} bought)` : " (by chance)");
+        leanTxt = `<br>This election it leaned ${lean(x)}` + (bought ? ` (it was bought; by chance alone it would have leaned ${lean(honest.b[h])})` : ", by chance");
       }
-      html = `<b>${h < p.me ? "National channel " + (h + 1) : "Local source " + (h - p.me + 1)}</b><br>${n} voters listen to it.${lean}<br><i>Click to highlight its listeners.</i>`;
+      html = `<b>${h < p.me ? "National channel " + (h + 1) : "Local source " + (h - p.me + 1)}</b><br>${n} voters listen to it.${leanTxt}<br><i>Click to highlight its listeners.</i>`;
     } else {
       const i = nearest(mx, my);
       if (i >= 0) {
         const v = last ? (last.vote[i] === 1 ? "voted good" : "voted bad") : "has not voted yet";
-        const sold = last && last.sys[view].bought && last.sys[view].bought.includes(i) ? `, then sold their vote in count ${view + 1}` : "";
-        const loyal = pop.bank[i] ? `loyal to the ${pop.bank[i] === 1 ? "good" : "bad"} candidate's party (pull ${pop.lam[i].toFixed(2)})` : "swing voter, no party";
+        const sold = last && last.sys[view].bought && last.sys[view].bought.includes(i) ? `, then sold their vote (${cname(p, view)})` : "";
+        const loyal = pop.bank[i] ? `loyal to the ${pop.bank[i] === 1 ? "good" : "bad"} candidate's party (${pop.lam[i] < 0.75 ? "loosely" : pop.lam[i] < 2 ? "firmly" : "fiercely"})` : "swing voter, no party";
         const ask = pop.price[i] === Infinity ? "cannot be bought" : pop.price[i] === pop.intimCost ? `can be threatened for Tk ${Math.round(pop.price[i]).toLocaleString("en-US")}` : `asks Tk ${Math.round(pop.price[i]).toLocaleString("en-US")} for their vote`;
-        html = `<b>${pop.edu[i] ? "Educated voter" : "Voter"}</b>, counts ${pop.edu[i] ? p.m : 1}\u00d7 in count 2<br>${loyal}<br>${v}${sold}<br>${ask}`;
+        html = `<b>${pop.edu[i] ? "Educated voter" : "Voter"}</b>, counts ${pop.edu[i] ? p.m : 1} under educated ×${p.m}<br>${loyal}<br>${v}${sold}<br>${ask}`;
       }
     }
     if (!html) { tip.hidden = true; return; }
@@ -871,7 +880,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
     const parts = [];
     if (rigs.pay) parts.push(`Cash: ${p.bud > 0 ? "Tk " + Math.round(p.bud * 100000).toLocaleString("en-US") : "no budget"} to spend, votes average Tk 1,000 and educated ones ${p.r}× that.`);
     if (rigs.threat) parts.push(`Threats: Tk ${p.k.toLocaleString("en-US")} a voter, same for everyone${rigs.pay ? ", used wherever cheaper than cash" : ""}.`);
-    if (rigs.tv) parts.push(`TV: every national channel pushed ${"−" + p.cap.toFixed(2)} toward the bad candidate. Only the educated watch them.`);
+    if (rigs.tv) parts.push(`TV: every national channel is pushed ${lean(-p.cap)}. Only the educated watch them.`);
     $("rig-note").textContent = parts.length ? parts.join(" ") : "No rigging. Wrong results can still happen from slanted news and voters' own mistakes.";
     const pre = preset(), changed = VARS.filter(([, id]) => String(pre[id]) !== String(id === "mix" ? p.mix : p[id]) && !(+pre[id] === p[id])).map((v) => v[2].toLowerCase());
     $("changed").textContent = changed.length ? `Changed from the preset: ${changed.join(", ")}.` : "";
