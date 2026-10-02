@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Every dot is a voter. Hold an election with equal votes and with educated votes counting more, and see which picks the better candidate.">
+<style>html{color-scheme:light} body{margin:0} [hidden]{display:none!important}</style>
+<title>Who Should Count More</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a polling-day instrument. The electorate drawn as a network on the left, the ballot and the running count on the right, settings below. */
+:root {
+  --paper: #eef1ee;
+  --sheet: #fbfcfb;
+  --ink: #1c2421;
+  --muted: #5c6863;
+  --rule: #d6ddd8;
+  --faint: #e3e8e4;
+  --lantern: #2a78d6;
+  --kite: #eb6834;
+  --equal: #39433f;
+  --weighted: #1baf7a;
+  --good: #1b7f52;
+  --bad: #b8432f;
+  --hub: #39433f;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #131816; --sheet: #1b211e; --ink: #e8ece9; --muted: #a2aea8; --rule: #2e3733; --faint: #242b28;
+    --lantern: #3987e5; --kite: #d95926; --equal: #c9d2cd; --weighted: #199e70; --good: #4fbf8a; --bad: #e07a62; --hub: #c9d2cd;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #131816; --sheet: #1b211e; --ink: #e8ece9; --muted: #a2aea8; --rule: #2e3733; --faint: #242b28;
+  --lantern: #3987e5; --kite: #d95926; --equal: #c9d2cd; --weighted: #199e70; --good: #4fbf8a; --bad: #e07a62; --hub: #c9d2cd;
+  color-scheme: dark;
+}
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 22px 40px; display: grid; gap: 18px; }
+header { display: grid; gap: 4px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 3.2vw, 2.3rem); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 74ch; }
+.main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.side { display: grid; gap: 18px; min-width: 0; }
+.card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 14px; min-width: 0; }
+h2 { font-family: var(--display); font-weight: 500; font-size: 1.1rem; margin: 0 0 8px; }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 2px; }
+.netbox { position: relative; }
+canvas { width: 100%; display: block; border-radius: 4px; background: var(--sheet); cursor: crosshair; }
+.tip { position: absolute; pointer-events: none; background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 5px 8px; font-size: 0.8rem; line-height: 1.35; max-width: 250px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.82rem; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
+.dot { border-radius: 50%; }
+.buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: 600 0.92rem var(--body); border-radius: 4px; padding: 8px 14px; border: 1px solid var(--ink); background: var(--ink); color: var(--sheet); cursor: pointer; }
+button.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+button:hover { filter: brightness(1.12); }
+button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--lantern); outline-offset: 2px; }
+button:disabled { opacity: 0.55; cursor: progress; }
+.ballot { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.cand { border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px; display: grid; grid-template-columns: 34px 1fr; gap: 2px 10px; align-items: center; }
+.cand svg { grid-row: span 2; }
+.cand b { font-family: var(--display); font-weight: 500; }
+.cand span { font-size: 0.8rem; color: var(--muted); }
+.cand.better { border-color: var(--good); box-shadow: inset 0 0 0 1px var(--good); }
+.tally { display: grid; gap: 10px; }
+.trow { display: grid; gap: 3px; }
+.trow .lab { display: flex; justify-content: space-between; gap: 8px; font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+.bar { position: relative; height: 18px; border-radius: 3px; overflow: hidden; background: var(--faint); display: flex; }
+.bar div { height: 100%; }
+.bar .half { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: var(--ink); opacity: 0.7; }
+.mark { font-family: var(--mono); font-size: 0.78rem; font-weight: 500; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--rule); color: var(--muted); }
+.mark.ok { color: var(--good); border-color: var(--good); }
+.mark.no { color: var(--bad); border-color: var(--bad); }
+.note { font-size: 0.84rem; color: var(--muted); margin: 8px 0 0; }
+.big { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat { border-left: 3px solid var(--rule); padding: 2px 0 2px 10px; }
+.stat span { display: block; font-size: 0.78rem; color: var(--muted); }
+.stat b { font-family: var(--mono); font-weight: 500; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.stat small { display: block; font-family: var(--mono); font-size: 0.76rem; color: var(--muted); }
+.run svg { width: 100%; height: auto; display: block; margin-top: 8px; }
+.controls { display: grid; gap: 8px; }
+details { border-top: 1px solid var(--rule); padding-top: 8px; }
+summary { cursor: pointer; font-family: var(--display); font-weight: 500; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 18px; margin-top: 8px; }
+label { display: grid; gap: 1px; font-size: 0.85rem; }
+label .row { display: flex; justify-content: space-between; gap: 6px; }
+label .v { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+label .hint { font-size: 0.76rem; color: var(--muted); }
+input[type=range] { width: 100%; accent-color: var(--lantern); }
+select { font: 0.88rem var(--body); padding: 4px; border: 1px solid var(--rule); border-radius: 4px; background: var(--sheet); color: var(--ink); }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.presets button { font-size: 0.82rem; padding: 5px 10px; }
+.speed { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--muted); }
+footer { color: var(--muted); font-size: 0.82rem; max-width: 90ch; }
+footer a { color: inherit; }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">A voting experiment</p>
+    <h1>Who Should Count More?</h1>
+    <p class="lede">Every dot is a voter, linked to the news sources they follow. Two candidates stand; one of them is
+      genuinely better. Hold an election: each source leans one way, the lean spreads to the people who listen to it,
+      and the count runs twice, once with every vote equal and once with educated votes counting more. Then hold a
+      thousand and see which system picks the better candidate more often.</p>
+  </header>
+
+  <div class="main">
+    <section class="card" aria-labelledby="h-net">
+      <p class="eyebrow">The electorate</p>
+      <h2 id="h-net">Voters and the sources they listen to</h2>
+      <div class="netbox">
+        <canvas id="net" aria-label="Voters drawn as dots around their news sources, coloured by their vote"></canvas>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span><i class="dot" style="background:var(--lantern)"></i>votes Lantern</span>
+        <span><i class="dot" style="background:var(--kite)"></i>votes Kite</span>
+        <span><i class="dot" style="border:2px solid var(--ink)"></i>educated</span>
+        <span><i style="background:var(--muted)"></i>square: in a family vote bank</span>
+        <span>large circles: news sources, coloured by which way they lean this election</span>
+        <span>&#215; bought or intimidated (in the weighted count)</span>
+      </div>
+      <p class="note">Hover a voter to see who they are. Click a news source to pick out everyone who listens to it; click again to clear.</p>
+    </section>
+
+    <div class="side">
+      <section class="card" aria-labelledby="h-ballot">
+        <p class="eyebrow">The ballot</p>
+        <h2 id="h-ballot">This election</h2>
+        <div class="ballot">
+          <div class="cand" id="c-lantern">
+            <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="11" y="4" width="12" height="4" rx="1" fill="var(--lantern)"/><path d="M9 10h16l-2 16H11z" fill="none" stroke="var(--lantern)" stroke-width="2.5"/><circle cx="17" cy="18" r="3.5" fill="var(--lantern)"/><rect x="10" y="27" width="14" height="3" rx="1" fill="var(--lantern)"/></svg>
+            <b>Lantern</b><span id="q-lantern">quality hidden</span>
+          </div>
+          <div class="cand" id="c-kite">
+            <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><path d="M17 3l10 11-10 13L7 14z" fill="none" stroke="var(--kite)" stroke-width="2.5"/><path d="M17 3v24M7 14h20" stroke="var(--kite)" stroke-width="1.5"/><path d="M17 27c-2 2 2 3 0 5" stroke="var(--kite)" stroke-width="1.5" fill="none"/></svg>
+            <b>Kite</b><span id="q-kite">quality hidden</span>
+          </div>
+        </div>
+        <div class="buttons">
+          <button id="b-one">Hold one election</button>
+          <button id="b-many" class="ghost">Hold 1,000 elections</button>
+          <button id="b-pop" class="ghost">New population</button>
+        </div>
+        <label class="speed" for="anim"><input id="anim" type="checkbox" checked> animate the count</label>
+        <div class="tally" id="tally" style="margin-top:12px"></div>
+        <p class="note" id="story">Press "Hold one election" to see who wins.</p>
+      </section>
+
+      <section class="card run" aria-labelledby="h-many">
+        <p class="eyebrow">Many elections</p>
+        <h2 id="h-many">How often does the better candidate win?</h2>
+        <div class="big" id="many"></div>
+        <svg id="runchart" viewBox="0 0 400 170" role="img" aria-label="Share of elections the better candidate has won so far, under each system"></svg>
+        <p class="note" id="many-note">Both systems see the same voters and the same news in every election, so the
+          gap between the lines is the weighting and nothing else.</p>
+      </section>
+    </div>
+  </div>
+
+  <section class="card controls" aria-labelledby="h-ctl">
+    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; align-items:center">
+      <h2 id="h-ctl" style="margin:0">Settings</h2>
+      <div class="presets" aria-label="Presets">
+        <button class="ghost" data-preset="few">Educated share a few national outlets</button>
+        <button class="ghost" data-preset="wide">Educated read widely</button>
+        <button class="ghost" data-preset="banks">Family vote banks</button>
+        <button class="ghost" data-preset="money">Vote buying</button>
+        <button class="ghost" data-preset="muscle">Cheap intimidation</button>
+      </div>
+    </div>
+
+    <details open>
+      <summary>Electorate and the rule</summary>
+      <div class="grid2">
+        <label for="n"><span class="row">Voters in this constituency <span class="v" id="n-v"></span></span>
+          <input id="n" type="range" min="101" max="5001" step="100" value="1001"></label>
+        <label for="f"><span class="row">Share who are educated <span class="v" id="f-v"></span></span>
+          <input id="f" type="range" min="0.05" max="0.6" step="0.01" value="0.25"></label>
+        <label for="m"><span class="row">An educated vote counts <span class="v" id="m-v"></span></span>
+          <input id="m" type="range" min="1" max="10" step="0.5" value="5">
+          <span class="hint">the weighted system; the other system always counts every vote once</span></label>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Judgement</summary>
+      <div class="grid2">
+        <label for="q"><span class="row">How much better the better candidate is <span class="v" id="q-v"></span></span>
+          <input id="q" type="range" min="0.05" max="1.5" step="0.05" value="0.3"></label>
+        <label for="se"><span class="row">Personal error, educated <span class="v" id="se-v"></span></span>
+          <input id="se" type="range" min="0.2" max="3" step="0.1" value="0.8"></label>
+        <label for="su"><span class="row">Personal error, everyone else <span class="v" id="su-v"></span></span>
+          <input id="su" type="range" min="0.2" max="3" step="0.1" value="2"></label>
+      </div>
+    </details>
+
+    <details open>
+      <summary>News sources (where shared mistakes come from)</summary>
+      <div class="grid2">
+        <label for="me"><span class="row">National outlets the educated choose from <span class="v" id="me-v"></span></span>
+          <input id="me" type="range" min="1" max="40" step="1" value="3">
+          <span class="hint">each educated voter follows up to three of them</span></label>
+        <label for="mu"><span class="row">Local sources everyone else hears <span class="v" id="mu-v"></span></span>
+          <input id="mu" type="range" min="1" max="60" step="1" value="30">
+          <span class="hint">a village leader, a local channel, a broker; one each</span></label>
+        <label for="bn"><span class="row">How biased each national outlet can be <span class="v" id="bn-v"></span></span>
+          <input id="bn" type="range" min="0" max="2" step="0.05" value="1"></label>
+        <label for="bl"><span class="row">How biased each local source can be <span class="v" id="bl-v"></span></span>
+          <input id="bl" type="range" min="0" max="2" step="0.05" value="1"></label>
+      </div>
+    </details>
+
+    <details>
+      <summary>Parties and loyalty</summary>
+      <div class="grid2">
+        <label for="pl"><span class="row">Lantern's family vote bank <span class="v" id="pl-v"></span></span>
+          <input id="pl" type="range" min="0" max="0.45" step="0.01" value="0"></label>
+        <label for="pk"><span class="row">Kite's family vote bank <span class="v" id="pk-v"></span></span>
+          <input id="pk" type="range" min="0" max="0.45" step="0.01" value="0"></label>
+        <label for="lam"><span class="row">How locked in bank members are <span class="v" id="lam-v"></span></span>
+          <input id="lam" type="range" min="0" max="3" step="0.1" value="1.5"></label>
+        <label for="mix">Educated voters and the vote banks
+          <select id="mix"><option value="same">join them like everyone else</option>
+            <option value="swing">are mostly swing voters</option>
+            <option value="kite">lean toward Kite's bank</option></select></label>
+        <label for="pi"><span class="row">Lantern is the better candidate in <span class="v" id="pi-v"></span></span>
+          <input id="pi" type="range" min="0" max="1" step="0.05" value="0.5">
+          <span class="hint">50% means neither party is reliably better</span></label>
+        <label for="mu-e"><span class="row">Educated always lean toward Lantern by <span class="v" id="mu-e-v"></span></span>
+          <input id="mu-e" type="range" min="0" max="1" step="0.05" value="0"></label>
+      </div>
+    </details>
+
+    <details>
+      <summary>Money and muscle</summary>
+      <div class="grid2">
+        <label for="bud"><span class="row">The briber's budget <span class="v" id="bud-v"></span></span>
+          <input id="bud" type="range" min="0" max="3" step="0.05" value="0">
+          <span class="hint">the briber backs whichever candidate is worse, and knows every voter's price</span></label>
+        <label for="r"><span class="row">An educated voter's price, compared with others <span class="v" id="r-v"></span></span>
+          <input id="r" type="range" min="0.5" max="6" step="0.25" value="3">
+          <span class="hint">others take Tk 1,000 on average, the floor reported for 2024</span></label>
+        <label for="k"><span class="row">Cost of intimidating one voter <span class="v" id="k-v"></span></span>
+          <input id="k" type="range" min="250" max="8000" step="250" value="8000">
+          <span class="hint">the same for everyone; at the right end the briber never uses it</span></label>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    This is a model, not a forecast: the settings are assumptions, and the two that matter most (how much educated
+    voters share their mistakes, and what a vote really costs) have not been measured for Bangladesh. Lantern and Kite
+    are fictional and stand for no real party.
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const IDS = ["n", "f", "m", "q", "se", "su", "me", "mu", "bn", "bl", "pl", "pk", "lam", "mix", "pi", "mu-e", "bud", "r", "k"];
+  const DEFAULTS = {};
+  IDS.forEach((id) => { DEFAULTS[id] = $(id).value; });
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion) $("anim").checked = false;
+
+  // ------------------------------------------------------------- randomness
+  function rng(seed) {                         // mulberry32, seeded so a run can be repeated
+    let a = seed >>> 0, spare = null;
+    const next = () => {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    next.normal = () => {                      // Box-Muller
+      if (spare !== null) { const s = spare; spare = null; return s; }
+      let u = 0; while (u === 0) u = next();
+      const v = next(), r = Math.sqrt(-2 * Math.log(u));
+      spare = r * Math.sin(2 * Math.PI * v);
+      return r * Math.cos(2 * Math.PI * v);
+    };
+    return next;
+  }
+
+  function params() {
+    const p = {};
+    IDS.forEach((id) => { p[id] = id === "mix" ? $(id).value : +$(id).value; });
+    p.kOff = p.k >= 8000;
+    return p;
+  }
+
+  // ------------------------------------------------------------- the model
+  // Same equations as the project's Python model (network.py, persistent.py,
+  // electorate.draw_banks): a voter's perceived gap between Lantern and Kite is
+  //   s*q + (mean bias of the sources they follow) + educated lean
+  //       + party pull (+lam for Lantern's bank, -lam for Kite's) + personal error
+  // and they vote Lantern if it is positive. s = +1 when Lantern is better.
+  function population(p, seed) {
+    const R = rng(seed), n = p.n;
+    const edu = new Uint8Array(n), src = [], bank = new Int8Array(n), lam = new Float64Array(n), price = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+      edu[i] = R() < p.f ? 1 : 0;
+      if (edu[i]) {
+        const d = Math.min(3, p.me), pool = Array.from({ length: p.me }, (_, j) => j);
+        for (let j = 0; j < d; j++) { const t = j + Math.floor(R() * (pool.length - j)); [pool[j], pool[t]] = [pool[t], pool[j]]; }
+        src.push(pool.slice(0, d));
+      } else {
+        src.push([p.me + Math.floor(R() * p.mu)]);
+      }
+      let pl = p.pl, pk = p.pk;
+      if (edu[i] && p.mix === "swing") { pl /= 2; pk /= 2; }
+      if (edu[i] && p.mix === "kite") { pl /= 2; pk = Math.min(pk * 1.5, 1 - pl); }
+      const u = R();
+      bank[i] = u < pl ? 1 : u < pl + pk ? -1 : 0;
+      lam[i] = bank[i] ? Math.abs(R.normal()) * p.lam : 0;
+      price[i] = 1000 * Math.exp(0.6 * R.normal()) * (edu[i] ? p.r : 1);
+      if (!p.kOff) price[i] = Math.min(price[i], p.k);
+    }
+    return { n, edu, src, bank, lam, price, intimCost: p.kOff ? Infinity : p.k };
+  }
+
+  function election(p, pop, R) {
+    const lanternBetter = R() < p.pi, s = lanternBetter ? 1 : -1;
+    const M = p.me + p.mu, b = new Float64Array(M);
+    for (let j = 0; j < M; j++) b[j] = R.normal() * (j < p.me ? p.bn : p.bl);
+    const vote = new Int8Array(pop.n);
+    for (let i = 0; i < pop.n; i++) {
+      let eta = 0; const ss = pop.src[i];
+      for (let j = 0; j < ss.length; j++) eta += b[ss[j]];
+      eta /= ss.length;
+      const gap = s * p.q + eta + (pop.edu[i] ? p["mu-e"] : 0) + pop.bank[i] * pop.lam[i]
+                + (pop.edu[i] ? p.se : p.su) * R.normal();
+      vote[i] = gap > 0 ? 1 : -1;
+    }
+    const better = lanternBetter ? 1 : -1;
+    return { lanternBetter, b, vote, sys: [1, p.m].map((mult) => count(p, pop, vote, better, mult)) };
+  }
+
+  // Count under one weighting. As in the project's model, the better candidate
+  // needs MORE than half the weight; an exact tie goes to the worse one. The
+  // briber backs the worse candidate, sees every vote and price, and buys the
+  // most weight per taka first until the worse candidate holds at least half,
+  // if the budget allows.
+  function count(p, pop, vote, better, mult) {
+    const w = (i) => (pop.edu[i] ? mult : 1);
+    let total = 0, worseW = 0;
+    for (let i = 0; i < pop.n; i++) { total += w(i); if (vote[i] !== better) worseW += w(i); }
+    let bought = null, cost = 0, intimidated = 0;
+    const budget = p.bud * 100000, deficit = total / 2 - worseW;
+    if (budget > 0 && deficit > 0) {
+      const cand = [];
+      for (let i = 0; i < pop.n; i++) if (vote[i] === better) cand.push(i);
+      cand.sort((a, c) => w(c) / pop.price[c] - w(a) / pop.price[a]);
+      let got = 0, k = 0;
+      while (k < cand.length && got < deficit) { got += w(cand[k]); cost += pop.price[cand[k]]; k++; }
+      if (cost <= budget) {
+        bought = cand.slice(0, k);
+        intimidated = bought.filter((i) => pop.price[i] === pop.intimCost).length;
+        worseW += got;
+      }
+    }
+    return { mult, total, betterShare: 1 - worseW / total, betterWins: worseW < total / 2, bought, cost, intimidated };
+  }
+
+  // ------------------------------------------------------------- drawing
+  const canvas = $("net"), ctx = canvas.getContext("2d");
+  let layout = null, seed = 20260212, pop = null, last = null, focus = -1, anim = null;
+  const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+  function makeLayout(p) {
+    const W = canvas.clientWidth || 700, H = Math.max(360, Math.min(620, W * 0.8));
+    canvas.style.height = H + "px";
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const R = rng(seed + 7), hubs = [], topY = 30, band = H * 0.34;
+    for (let j = 0; j < p.me; j++) hubs.push({ x: 24 + (W - 48) * (p.me === 1 ? 0.5 : j / (p.me - 1)), y: topY, r: 8 });
+    const cols = Math.max(1, Math.round(Math.sqrt(p.mu * W / (H * 0.6)))), rows = Math.ceil(p.mu / cols);
+    for (let j = 0; j < p.mu; j++) {
+      const c = j % cols, r = Math.floor(j / cols);
+      hubs.push({ x: 28 + (W - 56) * (cols === 1 ? 0.5 : c / (cols - 1)), y: band + 38 + (H - band - 58) * (rows === 1 ? 0.5 : r / (rows - 1)), r: 5.5 });
+    }
+    const cellR = Math.min((W - 56) / Math.max(cols, 1), (H - band - 58) / Math.max(rows, 1)) * 0.48;
+    const pts = [];
+    for (let i = 0; i < pop.n; i++) {
+      const ss = pop.src[i];
+      if (pop.edu[i]) {
+        let x = 0; ss.forEach((j) => { x += hubs[j].x; }); x /= ss.length;
+        pts.push({ x: Math.min(W - 6, Math.max(6, x + (R() - 0.5) * (W / Math.max(p.me, 2)) * 0.75)), y: topY + 20 + R() * (band - topY - 26), d: 0 });
+      } else {
+        const h = hubs[ss[0]], a = R() * 2 * Math.PI, rr = Math.sqrt(R()) * cellR;
+        pts.push({ x: h.x + Math.cos(a) * rr, y: h.y + Math.sin(a) * rr, d: 0 });
+      }
+    }
+    // reveal order: votes spread out from each voter's source
+    let dmax = 1e-9;
+    pts.forEach((pt, i) => {
+      let hx = 0, hy = 0; pop.src[i].forEach((j) => { hx += hubs[j].x; hy += hubs[j].y; });
+      hx /= pop.src[i].length; hy /= pop.src[i].length;
+      pt.d = Math.hypot(pt.x - hx, pt.y - hy); dmax = Math.max(dmax, pt.d);
+    });
+    pts.forEach((pt) => { pt.delay = 0.75 * (pt.d / dmax) + 0.25 * R(); });
+    return { W, H, band, hubs, pts };
+  }
+
+  function mix(c1, c2, t) {               // blend two hex colours
+    const h = (c) => [1, 3, 5].map((k) => parseInt(c.slice(k, k + 2), 16));
+    const a = h(c1), b = h(c2);
+    return "rgb(" + a.map((v, k) => Math.round(v + (b[k] - v) * t)).join(",") + ")";
+  }
+
+  // phase: 0..1 sources light up, 1..2 votes spread, 2..3 bribes flip
+  function draw(p, phase) {
+    if (!layout) return;
+    const { W, H, band, hubs, pts } = layout;
+    const C = { ink: css("--ink"), muted: css("--muted"), rule: css("--rule"), lantern: css("--lantern"), kite: css("--kite"), hub: css("--hub"), sheet: css("--sheet"), faint: css("--faint") };
+    const ph = phase === undefined ? 3 : phase;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = C.sheet; ctx.fillRect(0, 0, W, H);
+    ctx.font = "11px " + css("--mono"); ctx.fillStyle = C.muted;
+    ctx.fillText("national outlets (the educated)", 8, 13);
+    ctx.fillText("local sources (everyone else)", 8, band + 6);
+    ctx.strokeStyle = C.rule; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
+    ctx.beginPath(); ctx.moveTo(0, band - 4); ctx.lineTo(W, band - 4); ctx.stroke(); ctx.setLineDash([]);
+    const listening = (i) => focus < 0 || pop.src[i].includes(focus);
+    if (pop.n <= 2001) {
+      ctx.lineWidth = 0.6;
+      for (let pass = 0; pass < 2; pass++) {
+        ctx.beginPath();
+        for (let i = 0; i < pop.n; i++) {
+          if ((pass === 1) !== (focus >= 0 && listening(i))) continue;
+          pop.src[i].forEach((j) => { if (focus < 0 || j === focus) { ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(hubs[j].x, hubs[j].y); } });
+        }
+        ctx.strokeStyle = pass === 1 ? C.ink : C.rule; ctx.globalAlpha = pass === 1 ? 0.35 : 0.35; ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+    const sys = last ? last.sys[1] : null, bought = new Set(sys && sys.bought ? sys.bought : []);
+    const small = pop.n > 2001 ? 1.6 : pop.n > 1001 ? 2.1 : 2.7;
+    const spread = Math.max(0, Math.min(1, ph - 1)), flip = Math.max(0, Math.min(1, ph - 2));
+    for (let i = 0; i < pop.n; i++) {
+      const pt = pts[i], v = last ? last.vote[i] : 0;
+      let col = C.faint;
+      if (v) {
+        const t = Math.max(0, Math.min(1, (spread - pt.delay) / 0.12));
+        col = t > 0 ? mix(C.faint.length === 7 ? C.faint : "#e3e8e4", v === 1 ? C.lantern : C.kite, t) : C.faint;
+        if (bought.has(i) && flip > 0) col = mix(v === 1 ? C.lantern : C.kite, v === 1 ? C.kite : C.lantern, flip);
+      }
+      const r = (pop.edu[i] ? small + 1.4 : small) * (bought.has(i) && flip > 0 && flip < 1 ? 1 + 0.8 * Math.sin(Math.PI * flip) : 1);
+      ctx.globalAlpha = listening(i) ? 1 : 0.18;
+      ctx.fillStyle = col;
+      if (pop.bank[i]) ctx.fillRect(pt.x - r, pt.y - r, 2 * r, 2 * r);
+      else { ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI); ctx.fill(); }
+      if (pop.edu[i]) { ctx.strokeStyle = C.ink; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.arc(pt.x, pt.y, r + 0.8, 0, 2 * Math.PI); ctx.stroke(); }
+      if (bought.has(i) && flip >= 1) {
+        ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath();
+        ctx.moveTo(pt.x - r - 1, pt.y - r - 1); ctx.lineTo(pt.x + r + 1, pt.y + r + 1);
+        ctx.moveTo(pt.x + r + 1, pt.y - r - 1); ctx.lineTo(pt.x - r - 1, pt.y + r + 1); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+    const light = Math.max(0, Math.min(1, ph));
+    hubs.forEach((h, j) => {
+      let col = C.hub, rad = h.r;
+      if (last && light > 0) {
+        const lean = last.b[j], amp = Math.min(1, Math.abs(lean) / 1.5);
+        col = mix("#8a938e", lean > 0 ? C.lantern : C.kite, light * (0.35 + 0.65 * amp));
+        rad = h.r * (1 + 0.6 * amp * light);
+      }
+      ctx.globalAlpha = focus < 0 || focus === j ? 1 : 0.35;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(h.x, h.y, rad, 0, 2 * Math.PI); ctx.fill();
+      ctx.strokeStyle = focus === j ? C.ink : C.sheet; ctx.lineWidth = focus === j ? 2 : 1.5; ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function play(p) {
+    cancelAnimationFrame(anim);
+    if (!$("anim").checked) { draw(p, 3); showElection(p, last, 1); return; }
+    const t0 = performance.now(), dur = [700, 1600, last.sys[1].bought ? 700 : 0];
+    const tick = (now) => {
+      const t = now - t0;
+      const ph = t < dur[0] ? t / dur[0] : t < dur[0] + dur[1] ? 1 + (t - dur[0]) / dur[1] : dur[2] ? 2 + Math.min(1, (t - dur[0] - dur[1]) / dur[2]) : 3;
+      draw(p, ph);
+      showElection(p, last, Math.max(0, Math.min(1, ph - 1)), ph >= 3 || (ph >= 2 && !dur[2]));
+      if (ph < 3 && !(ph >= 2 && !dur[2])) anim = requestAnimationFrame(tick);
+      else { draw(p, 3); showElection(p, last, 1, true); }
+    };
+    anim = requestAnimationFrame(tick);
+  }
+
+  // ------------------------------------------------------------- panels
+  const pct = (x) => (100 * x).toFixed(1) + "%";
+  const lakh = (tk) => "Tk " + (tk / 100000).toFixed(2) + " lakh";
+
+  // counted: share of the reveal finished (0..1); final: show results and bribes
+  function showElection(p, e, counted, final) {
+    final = final !== false && counted >= 1;
+    const better = e.lanternBetter ? "Lantern" : "Kite", worse = e.lanternBetter ? "Kite" : "Lantern";
+    $("c-lantern").classList.toggle("better", final && e.lanternBetter);
+    $("c-kite").classList.toggle("better", final && !e.lanternBetter);
+    $("q-lantern").textContent = final ? (e.lanternBetter ? "the better candidate" : "the worse candidate") : "quality hidden";
+    $("q-kite").textContent = final ? (e.lanternBetter ? "the worse candidate" : "the better candidate") : "quality hidden";
+    const pts = layout.pts, L = css("--lantern"), K = css("--kite");
+    $("tally").innerHTML = e.sys.map((r, j) => {
+      let lan, all;
+      if (final) {
+        lan = e.lanternBetter ? r.betterShare : 1 - r.betterShare; all = 1;
+      } else {
+        let sl = 0, sk = 0;
+        for (let i = 0; i < pop.n; i++) {
+          if (pts[i].delay > counted) continue;
+          const wi = pop.edu[i] ? r.mult : 1;
+          if (e.vote[i] === 1) sl += wi; else sk += wi;
+        }
+        all = (sl + sk) / r.total; lan = sl / r.total;
+      }
+      const kit = all - lan;
+      const name = j === 0 ? "Every vote counts once" : `Educated votes count ${p.m}×`;
+      const badge = final ? `<span class="mark ${r.betterWins ? "ok" : "no"}">${r.betterWins ? "better candidate won" : "worse candidate won"}</span>`
+                          : `<span class="mark">counting ${Math.round(100 * counted)}%</span>`;
+      return `<div class="trow"><div class="lab"><span>${name}</span>${badge}</div>
+        <div class="bar" role="img" aria-label="Lantern ${pct(lan)}, Kite ${pct(kit)}">
+          <div style="width:${100 * lan}%;background:${L}"></div><div style="width:${100 * kit}%;background:${K}"></div><span class="half"></span></div>
+        <div class="lab"><span>Lantern ${pct(lan)}</span><span>Kite ${pct(kit)}</span></div></div>`;
+    }).join("");
+    if (!final) { $("story").textContent = "Counting…"; return; }
+    const lines = [`${better} was the better candidate this time.`];
+    e.sys.forEach((r, j) => {
+      const name = j === 0 ? "With equal votes" : `With educated votes at ${p.m}×`;
+      if (r.bought) lines.push(`${name}, the briber spent ${lakh(r.cost)} to flip ${r.bought.length} voters` +
+        (r.intimidated ? ` (${r.intimidated} of them by intimidation)` : "") + ` and made ${worse} win.`);
+      else if (p.bud > 0 && !r.betterWins) lines.push(`${name}, ${worse} won without any help.`);
+      else if (p.bud > 0) lines.push(`${name}, the briber could not afford to change the result.`);
+    });
+    $("story").textContent = lines.join(" ");
+  }
+
+  function runChart(series, T) {
+    const svg = $("runchart"), W = 400, H = 170, L = 38, R = 10, Tp = 10, B = 26;
+    const all = series.flat().map((d) => d[1]);
+    let lo = Math.min(0.5, ...all), hi = Math.max(...all, 0.6);
+    lo = Math.floor(lo * 20) / 20; hi = Math.min(1, Math.ceil(hi * 20) / 20);
+    const X = (x) => L + (x / T) * (W - L - R), Y = (y) => Tp + (1 - (y - lo) / (hi - lo)) * (H - Tp - B);
+    const muted = "var(--muted)";
+    let s = "";
+    for (let v = lo; v <= hi + 1e-9; v += 0.05) {
+      s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--faint)"/>`;
+      s += `<text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="10" fill="${muted}" font-family="var(--mono)">${Math.round(v * 100)}%</text>`;
+    }
+    [0, T / 2, T].forEach((x) => { s += `<text x="${X(x)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="${muted}" font-family="var(--mono)">${x}</text>`; });
+    s += `<text x="${W - R}" y="${H - 8}" text-anchor="end" font-size="10" fill="${muted}" dx="-26">elections held</text>`;
+    const col = ["var(--equal)", "var(--weighted)"], name = ["equal votes", "weighted"];
+    series.forEach((ser, j) => {
+      if (!ser.length) return;
+      s += `<path d="${ser.map((d, k) => (k ? "L" : "M") + X(d[0]).toFixed(1) + "," + Y(d[1]).toFixed(1)).join("")}" fill="none" stroke="${col[j]}" stroke-width="2"/>`;
+      const e = ser[ser.length - 1];
+      s += `<circle cx="${X(e[0])}" cy="${Y(e[1])}" r="3.5" fill="${col[j]}"/>`;
+      s += `<text x="${Math.min(X(e[0]) - 6, W - R - 4)}" y="${Y(e[1]) + (j ? 14 : -7)}" text-anchor="end" font-size="10.5" fill="var(--ink)">${name[j]} ${pct(e[1])}</text>`;
+    });
+    svg.innerHTML = s;
+  }
+
+  function runMany(p, T, onStep, done) {
+    const pp = population(p, seed), R = rng(seed * 31 + 1);
+    let k = 0; const wins = [0, 0], bribed = [0, 0], series = [[], []];
+    const step = () => {
+      const end = Math.min(T, k + 25);
+      for (; k < end; k++) {
+        const e = election(p, pp, R);
+        e.sys.forEach((r, j) => { wins[j] += r.betterWins ? 1 : 0; bribed[j] += r.bought ? 1 : 0; });
+      }
+      series[0].push([k, wins[0] / k]); series[1].push([k, wins[1] / k]);
+      onStep(series, k);
+      if (k < T) setTimeout(step, 0); else done({ T, wins, bribed });
+    };
+    step();
+  }
+
+  function showMany(p, res) {
+    const se = (x) => Math.sqrt(x * (1 - x) / res.T);
+    $("many").innerHTML = res.wins.map((w, j) => {
+      const a = w / res.T, name = j === 0 ? "every vote counts once" : `educated votes count ${p.m}×`;
+      const extra = p.bud > 0 ? `<small>bribed result in ${pct(res.bribed[j] / res.T)}</small>` : "";
+      return `<div class="stat" style="border-left-color:${j ? "var(--weighted)" : "var(--equal)"}"><span>${name}</span><b>${pct(a)}</b><small>± ${pct(se(a))}</small>${extra}</div>`;
+    }).join("");
+    const d = (res.wins[1] - res.wins[0]) / res.T;
+    $("many-note").textContent = Math.abs(d) < 0.01
+      ? `Out of ${res.T.toLocaleString("en-US")} elections the two systems did about equally well.`
+      : `Out of ${res.T.toLocaleString("en-US")} elections, weighting educated votes ${d > 0 ? "helped" : "hurt"}: the better candidate won ${pct(Math.abs(d))} ${d > 0 ? "more" : "less"} often.`;
+  }
+
+  // ------------------------------------------------------------- interaction
+  function nearest(mx, my) {
+    let best = -1, bd = 64;
+    layout.pts.forEach((pt, i) => { const d = (pt.x - mx) ** 2 + (pt.y - my) ** 2; if (d < bd) { bd = d; best = i; } });
+    return best;
+  }
+  function hubAt(mx, my) {
+    let best = -1, bd = 144;
+    layout.hubs.forEach((h, j) => { const d = (h.x - mx) ** 2 + (h.y - my) ** 2; if (d < bd) { bd = d; best = j; } });
+    return best;
+  }
+  function describeHub(p, j) {
+    const listeners = pop.src.filter((s) => s.includes(j)).length;
+    const kind = j < p.me ? `National outlet ${j + 1}` : `Local source ${j - p.me + 1}`;
+    let lean = "";
+    if (last) { const b = last.b[j]; lean = `<br>This election it leans ${b > 0 ? "Lantern" : "Kite"} by ${Math.abs(b).toFixed(2)}.`; }
+    return `<b>${kind}</b><br>${listeners} voters listen to it.${lean}`;
+  }
+  canvas.addEventListener("mousemove", (ev) => {
+    if (!layout) return;
+    const b = canvas.getBoundingClientRect(), mx = ev.clientX - b.left, my = ev.clientY - b.top;
+    const p = params(), h = hubAt(mx, my), tip = $("tip");
+    let html = "";
+    if (h >= 0) html = describeHub(p, h);
+    else {
+      const i = nearest(mx, my);
+      if (i >= 0) {
+        const s = pop.src[i].map((j) => (j < p.me ? `national outlet ${j + 1}` : `local source ${j - p.me + 1}`)).join(", ");
+        const bank = pop.bank[i] === 1 ? "locked into Lantern's vote bank" : pop.bank[i] === -1 ? "locked into Kite's vote bank" : "a swing voter";
+        const v = last ? (last.vote[i] === 1 ? "voted Lantern" : "voted Kite") : "has not voted yet";
+        const bought = last && last.sys[1].bought && last.sys[1].bought.includes(i) ? (pop.price[i] === pop.intimCost ? ", then was intimidated" : ", then was bought") : "";
+        html = `<b>${pop.edu[i] ? "Educated" : "Not educated"} voter</b> (counts ${pop.edu[i] ? p.m : 1}× in the weighted system)<br>listens to ${s}<br>${bank}<br>${v}${bought}<br>price: Tk ${Math.round(pop.price[i]).toLocaleString("en-US")}`;
+      }
+    }
+    if (!html) { tip.hidden = true; return; }
+    tip.innerHTML = html; tip.hidden = false;
+    tip.style.left = Math.min(mx + 12, b.width - tip.offsetWidth - 4) + "px";
+    tip.style.top = Math.max(0, my - tip.offsetHeight - 10) + "px";
+  });
+  canvas.addEventListener("mouseleave", () => { $("tip").hidden = true; });
+  canvas.addEventListener("click", (ev) => {
+    const b = canvas.getBoundingClientRect(), h = hubAt(ev.clientX - b.left, ev.clientY - b.top);
+    focus = h === focus || h < 0 ? -1 : h;
+    draw(params());
+  });
+
+  // ------------------------------------------------------------- wiring
+  function label() {
+    const p = params();
+    $("n-v").textContent = p.n.toLocaleString("en-US");
+    $("f-v").textContent = Math.round(p.f * 100) + "%";
+    $("m-v").textContent = p.m + "×";
+    ["q", "se", "su", "bn", "bl", "lam", "mu-e"].forEach((id) => { $(id + "-v").textContent = (+$(id).value).toFixed(2); });
+    $("me-v").textContent = p.me; $("mu-v").textContent = p.mu;
+    $("pl-v").textContent = Math.round(p.pl * 100) + "%"; $("pk-v").textContent = Math.round(p.pk * 100) + "%";
+    $("pi-v").textContent = Math.round(p.pi * 100) + "%";
+    $("bud-v").textContent = p.bud > 0 ? "Tk " + p.bud.toFixed(2) + " lakh" : "none";
+    $("r-v").textContent = p.r.toFixed(2) + "×";
+    $("k-v").textContent = p.kOff ? "never used" : "Tk " + p.k.toLocaleString("en-US");
+  }
+
+  function rebuild() {
+    cancelAnimationFrame(anim);
+    label();
+    const p = params();
+    pop = population(p, seed);
+    layout = makeLayout(p);
+    last = null; focus = -1;
+    $("tally").innerHTML = ""; $("story").textContent = "Press “Hold one election” to see who wins.";
+    ["c-lantern", "c-kite"].forEach((id) => $(id).classList.remove("better"));
+    $("q-lantern").textContent = "quality hidden"; $("q-kite").textContent = "quality hidden";
+    draw(p);
+  }
+
+  let electionCount = 0;
+  $("b-one").addEventListener("click", () => {
+    const p = params();
+    last = election(p, pop, rng(seed * 97 + (++electionCount)));
+    play(p);
+  });
+  $("b-many").addEventListener("click", () => {
+    const p = params(), btn = $("b-many");
+    btn.disabled = true; btn.textContent = "Counting…";
+    runMany(p, 1000, (series) => runChart(series, 1000),
+      (res) => { showMany(p, res); btn.disabled = false; btn.textContent = "Hold 1,000 elections"; });
+  });
+  $("b-pop").addEventListener("click", () => { seed += 1; rebuild(); });
+
+  const PRESETS = {
+    few:    { me: 3, mu: 30 },
+    wide:   { me: 40, mu: 30 },
+    banks:  { me: 10, mu: 30, pl: 0.25, pk: 0.4, lam: 1.5, mix: "swing", pi: 0 },
+    money:  { me: 10, mu: 30, bud: 0.5, r: 3 },
+    muscle: { me: 10, mu: 30, bud: 0.5, r: 3, k: 1000 },
+  };
+  document.querySelectorAll("[data-preset]").forEach((btn) => btn.addEventListener("click", () => {
+    IDS.forEach((id) => { $(id).value = DEFAULTS[id]; });
+    Object.entries(PRESETS[btn.dataset.preset]).forEach(([id, v]) => { $(id).value = v; });
+    rebuild();
+  }));
+  IDS.forEach((id) => $(id).addEventListener("input", rebuild));
+  let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { layout = makeLayout(params()); draw(params()); }, 150); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => draw(params()));
+
+  window.__ballot = { population, election, rng, params };     // used to check the page against the Python model
+  rebuild();
+  $("many").innerHTML = '<p class="note" style="margin:0">Press “Hold 1,000 elections” to watch both systems settle.</p>';
+  runChart([[], []], 1000);
+})();
+</script>
+
+</body>
+</html>
