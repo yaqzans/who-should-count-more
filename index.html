@@ -279,6 +279,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
   //   s*q + (mean bias of the sources they follow) + educated lean
   //       + party pull (+lam for Lantern's bank, -lam for Kite's) + personal error
   // and they vote Lantern if it is positive. s = +1 when Lantern is better.
+  // ("Lantern" is the good candidate on this page: pi is fixed at 1, so Lantern is always better.)
   function population(p, seed) {
     const R = rng(seed), n = p.n;
     const edu = new Uint8Array(n), src = [], bank = new Int8Array(n), lam = new Float64Array(n), price = new Float64Array(n);

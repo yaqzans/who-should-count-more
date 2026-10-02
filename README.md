@@ -109,4 +109,4 @@ against the model's closed form of 0.851 / 0.634.
 
 The settings are assumptions. The two that matter most, how much educated
 voters share their mistakes and what a vote really costs to buy, have not been
-measured. Lantern and Kite are fictional and stand for no real party.
+measured. The candidates are fictional and stand for no real party.
