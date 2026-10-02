@@ -154,7 +154,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
       <div class="legend" aria-hidden="true">
         <span><i style="background:var(--good)"></i>voted good</span>
         <span><i style="background:var(--bad)"></i>voted bad</span>
-        <span><i style="border:2px solid var(--ink)"></i>educated (ringed)</span>
+        <span>above the dashed line: educated voters; below: everyone else</span>
         <span><i style="background:var(--muted);border-radius:0"></i>square: loyal to a party</span>
         <span><i style="background:var(--hub);width:14px;height:14px"></i>news source (turns the colour it pushes)</span>
         <span>&#215; paid or threatened by the rigger (hover to see under which count)</span>
@@ -534,7 +534,6 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
         ctx.moveTo(pt.x - r - 1.5, pt.y - r - 1.5); ctx.lineTo(pt.x + r + 1.5, pt.y + r + 1.5);
         ctx.moveTo(pt.x + r + 1.5, pt.y - r - 1.5); ctx.lineTo(pt.x - r - 1.5, pt.y + r + 1.5); ctx.stroke();
       }
-      if (pop.edu[i]) { ctx.strokeStyle = C.ink; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.arc(pt.x, pt.y, r + 0.7, 0, 2 * Math.PI); ctx.stroke(); }
     }
     ctx.globalAlpha = 1;
     const light = Math.max(0, Math.min(1, ph));
