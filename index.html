@@ -674,6 +674,19 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 90ch; }
 
   window.__ballot = { population, election, rng, params };     // used to check the page against the Python model
   rebuild();
+  // open on the case the page is about: equal votes pick the good candidate, weighted votes the bad one
+  setTimeout(() => {
+    if (busy || last) return;
+    const p = params();
+    for (let tries = 1; tries <= 3000; tries++) {
+      const e = election(p, pop, rng(seed * 97 + (++electionCount)));
+      if (e.sys[0].betterWins && !e.sys[1].betterWins) {
+        last = e;
+        play(p, "Here's one to start: counting educated votes extra elected the bad candidate. Hold your own elections to see how often that happens.");
+        return;
+      }
+    }
+  }, 600);
 })();
 </script>
 
