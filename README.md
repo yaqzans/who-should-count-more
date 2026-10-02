@@ -1,27 +1,51 @@
-# Who Should Count More?
+# How easy is it to rig an election?
 
 **Live: https://yaqzans.github.io/who-should-count-more/**
 
-Should educated people's votes count more? There is a good candidate and a bad
-one, and 1,001 voters each guess which is which, nudged by the news they
-follow. Every election is counted twice, once with every vote equal and once
-with educated votes counting extra, and you can see which way picks the good
-candidate more often.
+The page has a good candidate, a bad candidate and 1,001 voters. Someone backing the
+bad one tries to rig the election, either by paying people for their votes or by
+buying the TV news. Every election is counted twice:
 
-1. **Pick a world.** Two are made up to show the idea; three are tuned to real
-   survey data for Bangladesh, India and Pakistan.
-2. **Hold elections.** Watch one get counted, jump to an upset where the two
-   counts disagree, or run 1,000.
-3. **Read the result.** Every election comes with one plain sentence on why
-   it went the way it did.
+- one person, one vote
+- educated votes worth 5x
 
-The answer turns on one thing: **do educated voters share their mistakes?**
-One by one they guess better. But if they all watch the same few channels,
-then when those channels are wrong, they are all wrong together, and giving
-them extra votes makes that shared mistake bigger.
+The question is which count is harder to steal.
 
-How often the good candidate won, out of 1,200 elections per world
-(`check/worlds.js`, the page's default settings):
+1. **Pick a country.** Bangladesh, India and Pakistan are tuned to real survey
+   data. Two made-up worlds show the idea.
+2. **Pick how to rig it.** Buy votes, buy the TV news, both, or neither.
+3. **Hold elections.** Watch one get counted, jump to a stolen one, or run
+   1,000.
+4. **Read who won and why.** Every election is also drawn honestly from the
+   same random numbers. So the page can say exactly what the rigging changed:
+   who would have won without it, who was paid, and whether the result was
+   stolen.
+
+Over 1,000 elections per cell (`check/rigging.js`, the page's default
+settings), here is how many the good candidate won, shown as
+**equal / weighted**:
+
+| country | rigging | honest | rigged | stolen |
+|---|---|---|---|---|
+| Bangladesh | buy votes | 907 / 795 | 543 / 631 | 364 / 164 |
+| Bangladesh | buy the TV news | 907 / 795 | 789 / 489 | 118 / 306 |
+| India | buy votes | 836 / 756 | 614 / 663 | 222 / 93 |
+| India | buy the TV news | 836 / 756 | 536 / 352 | 300 / 404 |
+| Pakistan | buy votes | 951 / 926 | 566 / 701 | 385 / 225 |
+| Pakistan | buy the TV news | 951 / 926 | 815 / 413 | 136 / 513 |
+
+**Buying votes:** weighting educated votes protects the election. The cheap
+votes a briber buys are the ones that count least, and educated votes cost more.
+
+**Buying the news:** weighting makes the election easier to steal. The bought
+national channels are the ones the educated watch, and their votes count 5x.
+
+**With no rigging at all:** weighting already loses some elections. The educated
+make fewer mistakes one by one, but they share a few channels, so they make
+those mistakes together.
+
+How often the good candidate won with no rigging, out of 1,200 elections per
+world (`check/worlds.js`):
 
 | world | every vote equal | educated votes 5x |
 |---|---|---|

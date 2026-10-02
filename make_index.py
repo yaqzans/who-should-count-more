@@ -6,8 +6,8 @@ import re
 
 body = io.open("ballot.html", encoding="utf-8").read()
 title = re.search(r"<title>(.*?)</title>", body).group(1)
-desc = ("Every dot is a voter. Hold an election with equal votes and with educated "
-        "votes counting more, and see which picks the better candidate.")
+desc = ("Rig an election by buying votes or the news, and see whether one person one vote "
+        "or educated votes counting more is harder to steal.")
 page = f"""<!doctype html>
 <html lang="en">
 <head>
