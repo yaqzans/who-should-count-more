@@ -13,53 +13,66 @@ The question is which count is harder to steal.
 
 1. **Pick a country.** Bangladesh, India and Pakistan are tuned to real survey
    data. Two made-up worlds show the idea.
-2. **Pick how to rig it.** Buy votes, buy the TV news, both, or neither.
+2. **Pick how to rig it.** Pay for votes, threaten voters, buy the TV news, or
+   any mix of them.
 3. **Hold elections.** Watch one get counted, jump to a stolen one, or run
    1,000.
 4. **Read who won and why.** Every election is also drawn honestly from the
-   same random numbers. So the page can say exactly what the rigging changed:
-   who would have won without it, who was paid, and whether the result was
-   stolen.
+   same random numbers. The write-up comes from that election's own numbers:
+   - the margins
+   - each channel's lean
+   - the worst local source and how its listeners voted
+   - the party banks and the swing voters
+   - who the rigger paid or threatened, and at what price
+   - what flipping a count it could not afford would have cost
 
-Over 1,000 elections per cell (`check/rigging.js`, the page's default
-settings), here is how many the good candidate won, shown as
+All 19 variables are listed on the page under "Every variable in the model".
+Each one has a one-line meaning and a source: a survey, a reported figure, or
+an assumption.
+
+Over 1,000 elections per cell (`check/rigging.js`, the page's presets:
+equal-sized parties, Tk 10,000 budget, threats at Tk 500, bought channels
+pushing 0.30), here is how many the good candidate won, shown as
 **equal / weighted**:
 
 | country | rigging | honest | rigged | stolen |
 |---|---|---|---|---|
-| Bangladesh | buy votes | 907 / 795 | 543 / 631 | 364 / 164 |
-| Bangladesh | buy the TV news | 907 / 795 | 789 / 489 | 118 / 306 |
-| India | buy votes | 836 / 756 | 614 / 663 | 222 / 93 |
-| India | buy the TV news | 836 / 756 | 536 / 352 | 300 / 404 |
-| Pakistan | buy votes | 951 / 926 | 566 / 701 | 385 / 225 |
-| Pakistan | buy the TV news | 951 / 926 | 815 / 413 | 136 / 513 |
+| Bangladesh | pay for votes | 965 / 836 | 585 / 470 | 380 / 366 |
+| Bangladesh | threaten voters | 965 / 836 | 776 / 99 | 189 / 737 |
+| Bangladesh | buy the TV news | 965 / 836 | 921 / 532 | 44 / 304 |
+| India | pay for votes | 896 / 865 | 543 / 742 | 353 / 123 |
+| India | threaten voters | 896 / 865 | 703 / 524 | 193 / 341 |
+| India | buy the TV news | 896 / 865 | 708 / 539 | 188 / 326 |
+| Pakistan | pay for votes | 942 / 920 | 365 / 533 | 577 / 387 |
+| Pakistan | threaten voters | 942 / 920 | 614 / 35 | 328 / 885 |
+| Pakistan | buy the TV news | 942 / 920 | 853 / 481 | 89 / 439 |
 
-**Buying votes:** weighting educated votes protects the election. The cheap
-votes a briber buys are the ones that count least, and educated votes cost more.
+**Paying for votes:** weighting educated votes protects the election in India
+and Pakistan. The cheap votes a briber buys count least, and educated votes cost
+more. In Bangladesh it is about a wash.
+
+**Threats:** weighting is a disaster everywhere. A threat costs the same for
+anyone, so the rigger goes for the educated, whose votes count 5x.
 
 **Buying the news:** weighting makes the election easier to steal. The bought
-national channels are the ones the educated watch, and their votes count 5x.
+national channels are the ones the educated watch.
 
 **With no rigging at all:** weighting already loses some elections. The educated
 make fewer mistakes one by one, but they share a few channels, so they make
 those mistakes together.
 
-How often the good candidate won with no rigging, out of 1,200 elections per
-world (`check/worlds.js`):
-
-| world | every vote equal | educated votes 5x |
-|---|---|---|
-| Same 3 channels (made up) | 0.692 | 0.621 |
-| Read widely, 100 channels (made up) | 0.873 | 0.912 |
-| Bangladesh 2018 | 0.897 | 0.796 |
-| India 2023 | 0.838 | 0.750 |
-| Pakistan 2018 | 0.960 | 0.936 |
+Party loyalty matters as much as any of these. If the bad candidate's party
+holds most of the loyal voters, the good candidate rarely wins under either
+count. That is the case if the bad candidate is the ruling party's in
+Bangladesh 2018, which held 69% of them.
 
 ## The real-data worlds
 
-These come from World Values Survey wave 7 and use two numbers per country:
+These come from World Values Survey wave 7 and use four numbers per country:
 
 - the share of adults with higher education
+- the share who name a party they would vote for (the loyal voters)
+- the ruling party's share of those (on the slider, not the default)
 - how much people in the same region make the same mistake on three factual
   questions (the regional intraclass correlation of wrong answers, for the
   educated and for everyone else)
@@ -67,11 +80,11 @@ These come from World Values Survey wave 7 and use two numbers per country:
 The page sets the news-source bias so that the model's share of shared error
 matches those correlations.
 
-| country | higher education | shared error, educated | shared error, others |
-|---|---|---|---|
-| Bangladesh 2018 | 103 of 1,199 | 0.131 | 0.054 |
-| India 2023 | 391 of 1,689 | 0.111 | 0.124 |
-| Pakistan 2018 | 207 of 1,992 | 0.024 | 0.028 |
+| country | higher education | shared error, educated | shared error, others | name a party | ruling party's share |
+|---|---|---|---|---|---|
+| Bangladesh 2018 | 103 of 1,199 | 0.131 | 0.054 | 0.86 | 0.69 |
+| India 2023 | 391 of 1,689 | 0.111 | 0.124 | 0.83 | 0.45 |
+| Pakistan 2018 | 207 of 1,992 | 0.024 | 0.028 | 0.78 | 0.45 |
 
 This calibration is rough:
 
